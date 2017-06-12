@@ -1,0 +1,23 @@
+#diagram {
+    position: fixed;
+    right: 0;
+    height: calc(50% - 27px);
+}
+
+#chat-container {
+    border-right: 1px solid #dedede;
+    padding: 10px;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: calc(50% - 27px);
+}
+
+@media (min-width: 992px) {
+    #diagram {
+        height: calc(100% - 54px);
+    }
+    #chat-container {
+        height: calc(100% - 54px);
+    }
+}
