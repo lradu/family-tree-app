@@ -1,3 +1,12 @@
-<div id="chat">
-    message
+<div id="chat" class="d-flex flex-column-reverse">
+    <div class="p-2">
+      <input class="form-control" type="text" id="chat-input" #message (keypress) = "sendMessage($event, message.value)" placeholder="Message...">
+    </div>
+    <div class="d-flex flex-column chat-messages">
+        <div *ngFor = "let m of messages" class="p-2">
+            <div [class] = " m.name === 'AI' ? 'message message-ai': 'message message-user'">
+                {{ m.message }}
+            </div>
+        </div>
+    </div>
 </div>

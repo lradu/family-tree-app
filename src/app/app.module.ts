@@ -9,6 +9,7 @@ import { AppRouting } from './app.routing';
 import { AppComponent } from './app.component';
 import { HomeComponent } from './home/home.component';
 import { StartModule } from './start/start.module';
+import { AuthModule } from './auth/auth.module';
 
 export const environment = {
     production: false,
@@ -32,6 +33,7 @@ export const environment = {
     imports: [
         BrowserModule,
         AngularFireModule.initializeApp(environment.firebase),
+        AuthModule,
         StartModule,
         FormsModule,
         AppRouting,
