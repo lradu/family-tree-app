@@ -25,6 +25,8 @@ export class ChatComponent implements AfterViewInit {
     }
 
     ngAfterViewInit() {
+        if(!this.user) { return; };
+        
         // get the user's chat
         this.dbref
             .child('users/' + this.user.uid)

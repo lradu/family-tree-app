@@ -7,8 +7,8 @@ describe('family-tree-app App', function() {
     page = new FamilyTreeAppPage();
   });
 
-  it('should display message saying app works', () => {
+  it('should display message saying home works', () => {
     page.navigateTo();
-    expect(page.getParagraphText()).toEqual('app works!');
+    expect(page.getParagraphText()).toEqual('home works!');
   });
 });

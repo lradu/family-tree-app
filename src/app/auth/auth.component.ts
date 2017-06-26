@@ -2,7 +2,7 @@ import { Component, Inject, ChangeDetectorRef, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpModule } from '@angular/http';
 
-import { AngularFire, AuthMethods, AuthProviders, FirebaseApp } from 'angularfire2';
+import { AngularFire, AuthMethods, AuthProviders } from 'angularfire2';
 
 @Component({
     templateUrl: './login-a.component.html'

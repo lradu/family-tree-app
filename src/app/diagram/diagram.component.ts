@@ -60,7 +60,8 @@ export class DiagramComponent implements AfterViewInit {
     }
 
     getData() {
-
+        if(!this.user) { return; }
+        
         this.dbref
             .child('users/' + this.user.uid)
             .on('value', (snapShot) => {

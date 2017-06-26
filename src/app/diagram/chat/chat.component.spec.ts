@@ -3,6 +3,8 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
+import { AngularFireModule } from 'angularfire2';
+
 import { ChatComponent } from './chat.component';
 
 describe('ChatComponent', () => {
@@ -10,8 +12,20 @@ describe('ChatComponent', () => {
   let fixture: ComponentFixture<ChatComponent>;
 
   beforeEach(async(() => {
+    const firebaseConfig = {
+        apiKey: "AIzaSyD1YosqyxZALbp9VsG7L9opMqZiZz1fjz8",
+        authDomain: "family-tree-app.firebaseapp.com",
+        databaseURL: "https://family-tree-app.firebaseio.com",
+        projectId: "family-tree-app",
+        storageBucket: "family-tree-app.appspot.com",
+        messagingSenderId: "862196492890"
+    }
+
     TestBed.configureTestingModule({
-      declarations: [ ChatComponent ]
+      declarations: [ ChatComponent ],
+      imports: [
+          AngularFireModule.initializeApp(firebaseConfig)
+      ]
     })
     .compileComponents();
   }));
