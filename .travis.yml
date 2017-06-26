@@ -1,5 +1,6 @@
 os:
   - linux
+dist: trusty
 language: node_js
 node_js:
   - "6.9"
@@ -23,12 +24,11 @@ before_install:
 
 before_script:
   - npm install -g firebase-tools
-  - npm install -g @angular/cli
+  - npm install -g angular-cli@1.0.0-beta.24
 
 script:
-  - ng build --prod
   - ng test --watch=false
-  - ng e2e
 
 after_success:
+  - ng build --prod
   - firebase deploy --token $FIREBASE_TOKEN
