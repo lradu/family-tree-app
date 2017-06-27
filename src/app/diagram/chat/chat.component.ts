@@ -61,7 +61,6 @@ export class ChatComponent implements AfterViewInit {
                     .update({
                         chat: newChat.key
                     });
-                console.log(this.replies);
                 this.getMessages(newChat.key);
                 this.getNextReply();
                 this.postSolvedTag(newChat.key, this.currentReply.tag);
