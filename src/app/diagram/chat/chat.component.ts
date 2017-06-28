@@ -16,8 +16,11 @@ export class ChatComponent implements AfterViewInit {
     private chatId: string;
     private showChatInput: boolean = false;
     private messages: any = [];
+
     private replies: any = [];
-    private currentReply: any = {};
+    private currentReply: any;
+    private currentEntity: string = "me";
+    private entities: Array<string> = ["partner"];
 
     constructor(@Inject(FirebaseApp) firebase: any) {
         this.dbref = firebase.database().ref();
@@ -62,10 +65,16 @@ export class ChatComponent implements AfterViewInit {
                         chat: newChat.key
                     });
                 this.getMessages(newChat.key);
+
+                // Get greeting message
                 this.getNextReply();
+                this.postReply();
                 this.postSolvedTag(newChat.key, this.currentReply.tag);
+
+                // Get first question
                 this.getNextReply();
-                this.postSolvedTag(newChat.key, this.currentReply.tag);
+                this.processNextReply();
+                this.postReply();
             });
     }
 
@@ -79,59 +88,10 @@ export class ChatComponent implements AfterViewInit {
         });
     }
 
-    // save user input
-    postMessage(event, message){
-        if(!event || !message || event.keyCode !== 13) return;
-
-        let date = + new Date();
-        this.dbref
-            .child('messages/' + this.chatId)
-            .push({
-                'name': this.userData.name || 'Anonymous',
-                'message': message,
-                'timestamp': date
-            });
-
-        this.userData[this.currentReply.tag] = message;
-
-        this.postTag(message)
-            .then(() => {
-                this.postSolvedTag(this.chatId, this.currentReply.tag)
-                    .then(() => {
-                        this.getNextReply();
-                    });
-            });
-
-        event.srcElement.value = '';
-    }
-
-    // check entity
-    checkEntity(){
-
-    }
-
-    // add tag to entity
-    postTag(res){
-        return this.dbref
-            .child('users/' + this.user.uid)
-            .update({
-                [this.currentReply.tag]: res
-            });
-    }
-
-    // add tag to solved
-    postSolvedTag(chatId, tag){
-        return this.dbref
-            .child('chats/' + chatId + '/solvedTags')
-            .update({
-                [tag]: true
-            });
-    }
-
     // get solved replies tags
     getSolvedTags(chatId){
         return this.dbref
-            .child('chats/' + chatId + '/solvedTags')
+            .child('users/' + this.user.uid + '/solvedTags')
             .once('value', (snapShot) => {
                 this.getReplies(snapShot.val());
             });
@@ -159,16 +119,114 @@ export class ChatComponent implements AfterViewInit {
             });
     }
 
+    // save user input
+    postMessage(event, message){
+        if(!event || !message || event.keyCode !== 13) return;
+
+        let date = + new Date();
+        this.dbref
+            .child('messages/' + this.chatId)
+            .push({
+                'name': this.userData.name || 'Anonymous',
+                'message': message,
+                'timestamp': date
+            });
+
+        if(this.currentReply || this.replies.length) {
+            if(!this.currentReply) { this.getNextReply() };
+            this.userData[this.currentReply.tag] = message;
+            
+            this.postTag(message)
+                .then(() => {
+                    this.postSolvedTag(this.chatId, this.currentReply.tag)
+                        .then(() => {
+                            let goToNext = this.getNextReply();
+                            if(goToNext){
+                                this.processNextReply();
+                                this.postReply();
+                            }
+                        });
+                });
+        } else {
+            this.getNextEntity();
+        }
+
+        event.srcElement.value = '';
+    }
+
+    // add tag to entity
+    postTag(res){
+        let path = '';
+        if(this.currentReply.saveTag) {
+            path = '/info';
+        }
+
+        return this.dbref
+            .child('users/' + this.user.uid + path)
+            .update({
+                [this.currentReply.tag]: res
+            });
+    }
+
+    // add tag to solved
+    postSolvedTag(chatId, tag){
+        return this.dbref
+            .child('users/' + this.user.uid + '/solvedTags')
+            .update({
+                [tag]: true
+            });
+    }
+
+    // get next reply
     getNextReply(){
-        if(!this.replies.length) return;
+        if(!this.replies.length) {
+            this.currentReply = null;
+            return false;
+        }
 
         let date = + new Date();
         this.replies[0].timestamp = date;
         this.currentReply = this.replies[0];
         this.replies.shift();
 
-        this.dbref
+        return true;
+    }
+
+    // go to next entity
+    getNextEntity(){
+        if(!this.entities.length) { return false; }
+
+        if(this.entities[0] === "partner") {
+            if(!this.userData.partner) {
+                this.replies.shift();
+                this.getNextEntity();
+                return false;
+            }
+        }
+        this.currentEntity = this.entities[0];
+        this.replies.shift();
+    }
+
+    // formulate reply message based on current entity
+    processNextReply(){
+        if(this.currentReply.entity === "all"){
+            let message = this.currentReply.message;
+            if(this.currentEntity === "me"){
+                message =  this.currentReply.message
+                    .replace('{$entity}', this.currentReply.me);
+                this.currentReply.message = message;
+            } else {
+                message = this.currentReply.message
+                    .replace('{$entity}', this.currentEntity + "'s " + this.currentReply.tag);
+                this.currentReply.message = message;
+            }
+        }
+    }
+
+    // add reply to chat
+    postReply(){
+        return this.dbref
             .child('messages/' + this.chatId)
             .push(this.currentReply);
-    }   
+    }
 }

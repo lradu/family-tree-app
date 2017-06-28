@@ -25,14 +25,14 @@ export class RenderNodes {
                 .attr("class", "node properties")
                 .attr("transform", (node) => {
                     return "translate("
-                    + (node.x + 2 * node.radius)
+                    + (node.x + 2 * node.radius + 4)
                     + ","
                     + (node.y + node.radius)
                     + ")";
                 })
                 .attr("d", (node) => { return node.propertiesPath; })
                 .attr("fill", "white")
-                .attr("stroke", "#333333")
+                .attr("stroke", "#7a7a7a")
                 .attr("stroke-width", 2);
 
         let gProperties = nodes.enter()
@@ -42,13 +42,13 @@ export class RenderNodes {
             .enter()    
             .data((node) => {
                 let lines = [];
-                if(node.propertiesList){
-                    for(let i = 0; i < node.propertiesList.length; i++){
+                if(node.properties.length){
+                    for(let i = 0; i < node.properties.length; i++){
                         lines.push({
-                            "text": node.propertiesList[i],
-                            "x": node.x + 2 * node.radius + node.propertiesWidth + 20,
-                            "y": node.y + node.radius + (i - node.propertiesList.length) * 25 + (i + 1) * 25,
-                            "color": node.color
+                            "text": node.properties[i],
+                            "x": node.x + 2 * node.radius + node.propertiesWidth + 24,
+                            "y": node.y + node.radius + (i - node.properties.length) * 12 + (i + 1) * 12,
+                            "color": "#7a7a7a"
                         });
                     }
                 }
@@ -61,7 +61,7 @@ export class RenderNodes {
                 .attr("fill", (p) => { return p.color; })
                 .attr("class", "properties")
                 .attr("text-anchor", "middle")
-                .attr("font-size",  "50px")
+                .attr("font-size",  "24px")
                 .attr("alignment-baseline", "central")
                 .text((p) => { return p.text; });              
 

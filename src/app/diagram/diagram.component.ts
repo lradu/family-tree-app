@@ -74,31 +74,46 @@ export class DiagramComponent implements OnInit {
 
     handleData(data) {
         let node = new Node();
-        let size, center;
+        let size = 0, longestText = '';
+        let nodes = {};
 
-        if(data.name) {
-            size = this.getTxtLength(data.name);
-            node.radius = size;
-            node.caption = data.name;
-        };
-        if(data.age) {
-            size = this.getTxtLength(data.name);
+        if(data.info){
+            Object.keys(data.info)
+                .map(key => {
+                    let val = key +  ': ' + data.info[key];
+                    if(val.length > longestText.length){
+                        longestText = val;
+                    }
+                    node.properties.push(val);
+                });
+
+            size = this.getTxtLength(longestText);
             node.propertiesWidth = size;
-            node.properties = data.age;
-        };
+            nodes["firstNode"] = node;
+
+            if(data.partnerName){
+                let partner = new Node();
+
+                partner.x+= 400;
+
+                longestText = "name: " + data.partnerName;
+                size = this.getTxtLength(longestText);
+                partner.propertiesWidth = size;
+                partner.properties.push(longestText);
+                nodes["secondNode"] = partner;
+            }
+        }
 
         this.render({
-            nodes: {
-                firstNode: node
-            }
+            nodes: nodes
         });
     }
 
     getTxtLength(text) {
         let txt = this.svg.append("text")
-            .attr("font-size",  "50px")
+            .attr("font-size",  "24px")
             .text(text);
-        let size = txt.node().getComputedTextLength() / 2 + 20;
+        let size = txt.node().getComputedTextLength() / 2 + 8;
         txt.remove();
 
         return size < 50 ? 50:size;

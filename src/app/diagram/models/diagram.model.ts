@@ -15,13 +15,11 @@ export class Diagram {
 
 		// nodes
 		for(let key in data.nodes){
-			node =  new Node();
-			Object.assign(node, data.nodes[key]);
+			node =  data.nodes[key]
 
-			if(node.properties){
-				node.propertiesList = node.properties.split('\n');
-				length = node.propertiesList.length;
-				node.propertiesPath = this.speechBubblePath(node.propertiesWidth * 2, length * 50, "horizontal", 10, 10);
+			if(node.properties.length){
+				length = node.properties.length;
+				node.propertiesPath = this.speechBubblePath(node.propertiesWidth * 2, length * 24, "horizontal", 10, 10);
 			}
 			this.nodes.push(node);
 		}

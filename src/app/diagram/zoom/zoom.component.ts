@@ -16,7 +16,7 @@ export class ZoomComponent implements AfterViewInit {
     constructor() {}
 
     ngAfterViewInit(){
-       if(this.svg) { this.zoomEvent() }; 
+       if(this.svg) { this.zoomEvent(); }
     }
 
     zoomEvent() {

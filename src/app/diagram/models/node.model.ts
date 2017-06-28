@@ -4,7 +4,7 @@ export class Node {
 	public y: number = 100;
 	public radius: number = 50;
 	public caption: string = "";
-	public properties: string = "";
+	public properties: Array<string> = [];
 	public propertiesWidth: number = 0;
 	public isRectangle: boolean = false;
 	public color: string = "#333333";
