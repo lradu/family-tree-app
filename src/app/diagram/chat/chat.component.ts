@@ -14,13 +14,14 @@ export class ChatComponent implements AfterViewInit {
 
     private userData: any = {};
     private chatId: string;
-    private showChatInput: boolean = false;
     private messages: any = [];
 
     private replies: any = [];
     private currentReply: any;
+
     private currentEntity: string = "me";
-    private entities: Array<string> = ["partner"];
+    private entityId: string;
+    private entities: Array<string> = ["partner", "father", "mother"];
 
     constructor(@Inject(FirebaseApp) firebase: any) {
         this.dbref = firebase.database().ref();
@@ -29,6 +30,8 @@ export class ChatComponent implements AfterViewInit {
 
     ngAfterViewInit() {
         if(!this.user) { return; };
+
+        this.entityId = this.user.uid;
         
         // get the user's chat
         this.dbref
@@ -42,34 +45,35 @@ export class ChatComponent implements AfterViewInit {
 
                 if(chat){
                     this.getMessages(chat);
-                    this.getSolvedTags(chat);
+                    this.getSolvedTags(this.user.uid);
                 } else {
                     this.getReplies(null)
                         .then(() => {
-                           this.createChat(); 
+                            this.createChat(this.user.uid);
                         });
                 } 
         });
     }
 
     // create a new chat
-    createChat(){
+    createChat(uid){
         return this.dbref
             .child('chats')
             .push({
-                user: this.user.uid
+                user: uid
             }).then((newChat) => {
                 this.dbref
-                    .child('users/' + this.user.uid)
+                    .child('users/' + uid)
                     .update({
                         chat: newChat.key
                     });
+
                 this.getMessages(newChat.key);
 
                 // Get greeting message
                 this.getNextReply();
                 this.postReply();
-                this.postSolvedTag(newChat.key, this.currentReply.tag);
+                this.postSolvedTag(this.currentReply.tag);
 
                 // Get first question
                 this.getNextReply();
@@ -84,14 +88,14 @@ export class ChatComponent implements AfterViewInit {
         this.dbref
             .child('messages/' + chatId)
             .on('child_added', (snapshot) => {
-                this.messages.push(snapshot.val());
+                this.messages.unshift(snapshot.val());
         });
     }
 
     // get solved replies tags
-    getSolvedTags(chatId){
+    getSolvedTags(uid){
         return this.dbref
-            .child('users/' + this.user.uid + '/solvedTags')
+            .child('users/' + uid + '/solvedTags')
             .once('value', (snapShot) => {
                 this.getReplies(snapShot.val());
             });
@@ -105,17 +109,17 @@ export class ChatComponent implements AfterViewInit {
             .once('value', (snapShot) => {
                 if(solvedTags){
                     snapShot.forEach((reply) => {
-                        if(!solvedTags[reply.val().tag]){
+                        if(!solvedTags[reply.val().tag] && (reply.val().entity === this.currentEntity || reply.val().entity === "all")) {
                             this.replies.push(reply.val());
                         }
                     });
                 } else {
                     snapShot.forEach((reply) => {
-                        this.replies.push(reply.val());
+                        if(reply.val().entity === this.currentEntity || reply.val().entity === "all"){
+                            this.replies.push(reply.val());
+                        }
                     });
                 }
-            }).then(() => {
-                this.showChatInput = true;
             });
     }
 
@@ -123,7 +127,7 @@ export class ChatComponent implements AfterViewInit {
     postMessage(event, message){
         if(!event || !message || event.keyCode !== 13) return;
 
-        let date = + new Date();
+        const date = + new Date();
         this.dbref
             .child('messages/' + this.chatId)
             .push({
@@ -138,7 +142,7 @@ export class ChatComponent implements AfterViewInit {
             
             this.postTag(message)
                 .then(() => {
-                    this.postSolvedTag(this.chatId, this.currentReply.tag)
+                    this.postSolvedTag(this.currentReply.tag)
                         .then(() => {
                             let goToNext = this.getNextReply();
                             if(goToNext){
@@ -162,16 +166,16 @@ export class ChatComponent implements AfterViewInit {
         }
 
         return this.dbref
-            .child('users/' + this.user.uid + path)
+            .child('users/' + this.entityId + path)
             .update({
                 [this.currentReply.tag]: res
             });
     }
 
     // add tag to solved
-    postSolvedTag(chatId, tag){
+    postSolvedTag(tag){
         return this.dbref
-            .child('users/' + this.user.uid + '/solvedTags')
+            .child('users/' + this.entityId + '/solvedTags')
             .update({
                 [tag]: true
             });
@@ -181,30 +185,17 @@ export class ChatComponent implements AfterViewInit {
     getNextReply(){
         if(!this.replies.length) {
             this.currentReply = null;
+            this.getNextEntity();
+
             return false;
         }
 
-        let date = + new Date();
+        const date = + new Date();
         this.replies[0].timestamp = date;
         this.currentReply = this.replies[0];
         this.replies.shift();
 
         return true;
-    }
-
-    // go to next entity
-    getNextEntity(){
-        if(!this.entities.length) { return false; }
-
-        if(this.entities[0] === "partner") {
-            if(!this.userData.partner) {
-                this.replies.shift();
-                this.getNextEntity();
-                return false;
-            }
-        }
-        this.currentEntity = this.entities[0];
-        this.replies.shift();
     }
 
     // formulate reply message based on current entity
@@ -228,5 +219,58 @@ export class ChatComponent implements AfterViewInit {
         return this.dbref
             .child('messages/' + this.chatId)
             .push(this.currentReply);
+    }
+
+    // move to next entity
+    getNextEntity(){
+        if(!this.entities.length) { return false; }
+
+        if(this.userData.entities && this.userData.entities[this.entities[0]]){
+            this.entities.shift();
+            this.getNextEntity();
+            return false;
+        } // todo
+
+        if(this.entities[0] === "partner") {
+            if(this.userData.partner !== "yes") {
+                this.entities.shift();
+                this.getNextEntity();
+                return false;
+            }
+        }
+
+        this.currentEntity = this.entities[0];
+        this.entities.shift();
+
+        const entity = this.createEntity(this.currentEntity, this.currentEntity, this.user.uid);
+        entity.then((newEntity) => {
+            this.entityId = newEntity.key;
+
+            this.postEntity(this.user.uid, this.currentEntity, newEntity.key);
+            this.postEntity(newEntity.key, this.currentEntity, this.user.uid);
+
+            this.getReplies(null);
+        })
+    }
+
+    // add entity tag
+    postEntity(uid, entity, entityId){
+        return this.dbref.child("users/" + uid + '/entities')
+            .update({
+                [entity]: entityId
+            });
+    }
+
+    // add new entity
+    createEntity(tag, entity, entityId){
+        return this.dbref.child('users')
+            .push({
+                entities: {
+                    [entity]: true
+                },
+                solvedTags: {
+                    [tag]: true
+                }
+            });
     }
 }
