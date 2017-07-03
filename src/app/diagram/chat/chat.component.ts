@@ -77,7 +77,6 @@ export class ChatComponent implements AfterViewInit {
 
                 // Get first question
                 this.getNextReply();
-                this.processNextReply();
                 this.postReply();
             });
     }
@@ -146,7 +145,6 @@ export class ChatComponent implements AfterViewInit {
                         .then(() => {
                             let goToNext = this.getNextReply();
                             if(goToNext){
-                                this.processNextReply();
                                 this.postReply();
                             }
                         });
@@ -195,6 +193,8 @@ export class ChatComponent implements AfterViewInit {
         this.currentReply = this.replies[0];
         this.replies.shift();
 
+        this.processNextReply();
+
         return true;
     }
 
@@ -204,11 +204,13 @@ export class ChatComponent implements AfterViewInit {
             let message = this.currentReply.message;
             if(this.currentEntity === "me"){
                 message =  this.currentReply.message
-                    .replace('{$entity}', this.currentReply.me);
+                    .replace('{$entity}', this.currentReply.me)
+                    .replace('{$tag}', '');
                 this.currentReply.message = message;
             } else {
                 message = this.currentReply.message
-                    .replace('{$entity}', this.currentEntity + "'s " + this.currentReply.tag);
+                    .replace('{$entity}', this.currentReply.all)
+                    .replace('{$tag}', this.currentEntity);
                 this.currentReply.message = message;
             }
         }
@@ -221,7 +223,10 @@ export class ChatComponent implements AfterViewInit {
             .push(this.currentReply);
     }
 
-    // move to next entity
+    /*
+        move to next entity
+
+    */
     getNextEntity(){
         if(!this.entities.length) { return false; }
 
@@ -249,7 +254,12 @@ export class ChatComponent implements AfterViewInit {
             this.postEntity(this.user.uid, this.currentEntity, newEntity.key);
             this.postEntity(newEntity.key, this.currentEntity, this.user.uid);
 
-            this.getReplies(null);
+            this.getReplies(null)
+                .then(() => {
+                    if(this.getNextReply()) {
+                        this.postReply();
+                    };
+                });
         })
     }
 
