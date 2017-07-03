@@ -16,14 +16,17 @@ import { RenderRelationships } from './models/render-relationships';
 })
 
 export class DiagramComponent implements OnInit {
-    public dbref: any;
-    public user: any;
+    private dbref: any;
+    private user: any;
 
-    public diagram;
+    private diagram;
 
-    public svg: any;
-    public gNodes: any;
-    public gRelationships: any;
+    private svg: any;
+    private gNodes: any;
+    private gRelationships: any;
+
+    private nodes = {};
+    private solvedEntities = {};
 
     constructor(@Inject(FirebaseApp) firebase: any) {
         this.dbref = firebase.database().ref();
@@ -40,16 +43,65 @@ export class DiagramComponent implements OnInit {
         this.gRelationships = this.svg.append("g")
             .attr("class", "layer relationships");
 
+        if(this.user){
+            this.getEntitiesData(this.user.uid, 0);
+        }
+    }
 
-        this.getData();
+    getEntitiesData(entityId, lvl){
+        if(lvl === 10) { return; }
+
+        this.solvedEntities[entityId] = true;
+
+        this.dbref
+            .child('users/' + entityId + '/entities')
+            .on('child_added', (snapShot) => {
+                if(snapShot.val() && !this.solvedEntities[snapShot.val()]){
+                    this.getEntitiesData(snapShot.val(), lvl + 1);
+                }
+            });
+
+        this.dbref
+            .child('users/' + entityId + '/info')
+            .on('value', (snapShot) => {
+                if(snapShot.val()){
+                    this.updateNode(snapShot.val(), entityId);
+                }
+            });
+    }
+
+    updateNode(data, id){
+        let node = new Node();
+        let size = 0, longestText = '';
+
+        node.id = id;
+
+        Object.keys(data)
+            .map(key => {
+                let val = key +  ': ' + data[key];
+                if(val.length > longestText.length){
+                    longestText = val;
+                }
+                node.properties.push(val);
+            });
+
+        size = this.getTxtLength(longestText);
+        node.propertiesWidth = size;
+
+        this.nodes[id] = node;
+
+
+        this.render();
     }
 
     // Render diagram
-    render(data) {
+    render() {
         let nodes, relationships;
 
         this.diagram = new Diagram();
-        this.diagram.load(data);
+        this.diagram.load({
+            nodes: this.nodes
+        });
 
         selectAll('svg.graph > g > *').remove();
         
@@ -58,55 +110,6 @@ export class DiagramComponent implements OnInit {
 
         relationships = new RenderRelationships();
         relationships.render(this.gRelationships, this.diagram.relationships);
-    }
-
-    getData() {
-        if(!this.user) { return; }
-        
-        this.dbref
-            .child('users/' + this.user.uid)
-            .on('value', (snapShot) => {
-                if(snapShot.val()) {
-                    this.handleData(snapShot.val());
-                }
-            });
-    }
-
-    handleData(data) {
-        let node = new Node();
-        let size = 0, longestText = '';
-        let nodes = {};
-
-        if(data.info){
-            Object.keys(data.info)
-                .map(key => {
-                    let val = key +  ': ' + data.info[key];
-                    if(val.length > longestText.length){
-                        longestText = val;
-                    }
-                    node.properties.push(val);
-                });
-
-            size = this.getTxtLength(longestText);
-            node.propertiesWidth = size;
-            nodes["firstNode"] = node;
-
-            if(data.partnerName){
-                let partner = new Node();
-
-                partner.x+= 400;
-
-                longestText = "name: " + data.partnerName;
-                size = this.getTxtLength(longestText);
-                partner.propertiesWidth = size;
-                partner.properties.push(longestText);
-                nodes["secondNode"] = partner;
-            }
-        }
-
-        this.render({
-            nodes: nodes
-        });
     }
 
     getTxtLength(text) {

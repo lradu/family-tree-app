@@ -15,7 +15,8 @@ export class Diagram {
 
 		// nodes
 		for(let key in data.nodes){
-			node =  data.nodes[key]
+			node = data.nodes[key]
+			node.x = this.nodes.length * 400;
 
 			if(node.properties.length){
 				length = node.properties.length;

@@ -223,10 +223,8 @@ export class ChatComponent implements AfterViewInit {
             .push(this.currentReply);
     }
 
-    /*
-        move to next entity
 
-    */
+    // move to next entity
     getNextEntity(){
         if(!this.entities.length) { return false; }
 
@@ -234,7 +232,7 @@ export class ChatComponent implements AfterViewInit {
             this.entities.shift();
             this.getNextEntity();
             return false;
-        } // todo
+        }
 
         if(this.entities[0] === "partner") {
             if(this.userData.partner !== "yes") {
