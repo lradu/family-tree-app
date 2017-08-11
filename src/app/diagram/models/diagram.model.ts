@@ -1,5 +1,7 @@
 import { Node } from './node.model';
 import { Relationship } from './relationship.model';
+import { SpeechBubblePath } from './speech-bubble-path';
+import { HorizontalArrow, CurvedArrow } from './arrow-path';
 
 export class Diagram {
 	public nodes: Array<Node>;
@@ -7,35 +9,42 @@ export class Diagram {
 	
 	constructor() {}
 
-	load(data){
+	init(data){
 		this.nodes = [];
 		this.relationships = [];
+		
+		this.initNodes(data.nodes);
+		this.initRelationships(data.relationships);		
+	}
 
-		let node, group, relationship, length, distance;
+	initNodes(nodes){
+		let node, length;
 
-		// nodes
-		for(let key in data.nodes){
-			node = data.nodes[key]
+		for(let key in nodes){
+			node = nodes[key]
 			node.x = this.nodes.length * 400;
 
 			if(node.properties.length){
 				length = node.properties.length;
-				node.propertiesPath = this.speechBubblePath(node.propertiesWidth * 2, length * 24, "horizontal", 10, 10);
+				node.propertiesPath = SpeechBubblePath(node.propertiesWidth * 2, length * 24, "horizontal", 10, 10);
 			}
 			this.nodes.push(node);
 		}
+	}
 
-		// relationships
-		for(let g in data.relationships) {
+	initRelationships(relationships){
+		let group, relationship, distance;
+
+		for(let g in relationships) {
 			group = [];
-			for(let key in data.relationships[g]){
+			for(let key in relationships[g]){
 				relationship = new Relationship();
-				Object.assign(relationship, data.relationships[g][key]);
+				Object.assign(relationship, relationships[g][key]);
 
 				if(relationship.properties){
 					relationship.propertiesList = relationship.properties.split('\n');
 					length = relationship.propertiesList.length;
-					relationship.propertiesPath = this.speechBubblePath(relationship.propertiesWidth * 2, length * 50, "vertical", 10, 10);
+					relationship.propertiesPath = SpeechBubblePath(relationship.propertiesWidth * 2, length * 50, "vertical", 10, 10);
 				}
 
 				relationship.source = this.nodes.find( x => x.id == relationship.startNode);
@@ -44,10 +53,10 @@ export class Diagram {
 				relationship.group = g;
 
 				distance = relationship.source.distanceTo(relationship.target) - 12;
-				if(Object.keys(data.relationships[g]).length === 1) {
-					relationship.path = this.horizontalArrow(relationship.source.radius + 12, distance - relationship.target.radius, 5);
+				if(Object.keys(relationships[g]).length === 1) {
+					relationship.path = HorizontalArrow(relationship.source.radius + 12, distance - relationship.target.radius, 5);
 				} else {
-					relationship.path = this.curvedArrow(relationship.source.radius + 12, relationship.target.radius, distance, (group.length + 1) * 10, 5, 20, 20);
+					relationship.path = CurvedArrow(relationship.source.radius + 12, relationship.target.radius, distance, (group.length + 1) * 10, 5, 20, 20);
 				}
 
 
@@ -57,170 +66,194 @@ export class Diagram {
 		}
 	}
 
-	speechBubblePath(width, height, style, margin, padding) {
-	    let styles = {
-	        diagonal: [
-	            "M", 0, 0,
-	            "L", margin + padding, margin,
-	            "L", margin + width + padding, margin,
-	            "A", padding, padding, 0, 0, 1, margin + width + padding * 2, margin + padding,
-	            "L", margin + width + padding * 2, margin + height + padding,
-	            "A", padding, padding, 0, 0, 1, margin + width + padding, margin + height + padding * 2,
-	            "L", margin + padding, margin + height + padding * 2,
-	            "A", padding, padding, 0, 0, 1, margin, margin + height + padding,
-	            "L", margin, margin + padding,
-	            "Z"
-	        ],
-	        horizontal: [
-	            "M", 0, 0,
-	            "L", margin, -padding,
-	            "L", margin, -height / 2,
-	            "A", padding, padding, 0, 0, 1, margin + padding, -height / 2 - padding,
-	            "L", margin + width + padding, -height / 2 - padding,
-	            "A", padding, padding, 0, 0, 1, margin + width + padding * 2, -height / 2,
-	            "L", margin + width + padding * 2, height / 2,
-	            "A", padding, padding, 0, 0, 1, margin + width + padding, height / 2 + padding,
-	            "L", margin + padding, height / 2 + padding,
-	            "A", padding, padding, 0, 0, 1, margin, height / 2,
-	            "L", margin, padding,
-	            "Z"
-	        ],
-	        vertical: [
-	            "M", 0, 0,
-	            "L", -padding, margin,
-	            "L", -width / 2, margin,
-	            "A", padding, padding, 0, 0, 0, -width / 2 - padding, margin + padding,
-	            "L", -width / 2 - padding, margin + height + padding,
-	            "A", padding, padding, 0, 0, 0, -width / 2, margin + height + padding * 2,
-	            "L", width / 2, margin + height + padding * 2,
-	            "A", padding, padding, 0, 0, 0, width / 2 + padding, margin + height + padding,
-	            "L", width / 2 + padding, margin + padding,
-	            "A", padding, padding, 0, 0, 0, width / 2, margin,
-	            "L", padding, margin,
-	            "Z"
-	        ]
-	    };
-	    return styles[style].join(" ");
+	renderNodes(gNodes){
+	    let nodes = gNodes.selectAll("rect.node")
+	      .data(this.nodes)
+
+	    nodes.enter()
+	        .append("rect")
+	        .attr("class", "node")
+	        .attr("width", (node) => { return node.radius * 2; })
+	        .attr("height", (node) => { return node.radius * 2; })
+	        .attr("x", (node) => { return node.x; })
+	        .attr("y", (node) => { return node.y; })
+	        .attr("rx", (node) => { return node.isRectangle ? 20 : node.radius; })
+	        .attr("ry", (node) => { return node.isRectangle ? 20 : node.radius; })
+	        .attr("fill", (node) => { return node.fill; })
+	        .attr("stroke", (node) => { return node.stroke; })
+	        .attr("stroke-width", (node) => { return node.strokeWidth; })
+	        .style("color", (node) => { return node.color; });
+
+	    nodes.enter()
+	        .append("path")
+	            .attr("class", "node properties")
+	            .attr("transform", (node) => {
+	                return "translate("
+	                + (node.x + 2 * node.radius + 4)
+	                + ","
+	                + (node.y + node.radius)
+	                + ")";
+	            })
+	            .attr("d", (node) => { return node.propertiesPath; })
+	            .attr("fill", "white")
+	            .attr("stroke", "#7a7a7a")
+	            .attr("stroke-width", 2);
+
+	    let gProperties = nodes.enter()
+	        .append("g")
+	        .attr("class", "properties");
+	    gProperties.selectAll("text")
+	        .enter()    
+	        .data((node) => {
+	            let lines = [];
+	            if(node.properties.length){
+	                for(let i = 0; i < node.properties.length; i++){
+	                    lines.push({
+	                        "text": node.properties[i],
+	                        "x": node.x + 2 * node.radius + node.propertiesWidth + 24,
+	                        "y": node.y + node.radius + (i - node.properties.length) * 12 + (i + 1) * 12,
+	                        "color": "#7a7a7a"
+	                    });
+	                }
+	            }
+	            return lines;
+	        })
+	        .enter()
+	        .append("text")
+	            .attr("x", (p) => { return p.x; })
+	            .attr("y", (p) => { return p.y; })
+	            .attr("fill", (p) => { return p.color; })
+	            .attr("class", "properties")
+	            .attr("text-anchor", "middle")
+	            .attr("font-size",  "24px")
+	            .attr("alignment-baseline", "central")
+	            .text((p) => { return p.text; });              
+
+	    let captions = gNodes.selectAll("text.node.caption")
+	        .data(this.nodes)
+
+	    captions.enter()
+	        .append("text")
+	            .attr("class", "node caption")
+	            .attr("x", (node) => { return node.x + node.radius; })
+	            .attr("y", (node) => { return node.y + node.radius; })
+	            .attr("fill", (node) => { return node.color })
+	            .attr("text-anchor", "middle")
+	            .attr("font-size",  "50px")
+	            .attr("alignment-baseline", "central")
+	            .text((node) => { return node.caption; })
 	}
+	
+	renderRelationships(gRelationships){
+	    let gRel = gRelationships.selectAll("g.groups")
+	        .data(this.relationships);
 
-	horizontalArrow(start, end, arrowWidth) {
-	    let shaftRadius = arrowWidth / 2;
-	    let headRadius = arrowWidth * 2;
-	    let headLength = headRadius * 2;
-	    let shoulder = start < end ? end - headLength : end + headLength;
+	    let rel = gRel.enter()
+	        .append("g")
+	            .attr("class", "groups")
+	          .selectAll("path.relationships")
+	            .data((g) => { return g; });
+	            
+	    rel.enter()
+	        .append("path")
+	            .attr("class", "relationships")
+	            .attr("transform", (rl) => {
+	                return "translate("
+	                + (rl.source.x + rl.source.radius)
+	                + ","
+	                + (rl.source.y + rl.source.radius)
+	                + ")" + "rotate(" + rl.angle + ")";
+	            })
+	            .attr("d", (rl) => { return rl.path.outline; })
+	            .attr("fill", (rl) => { return rl.fill; });
+	            
 
-	    return {
-	        outline: [
-	            "M", start, shaftRadius,
-	            "L", shoulder, shaftRadius,
-	            "L", shoulder, headRadius,
-	            "L", end, 0,
-	            "L", shoulder, -headRadius,
-	            "L", shoulder, -shaftRadius,
-	            "L", start, -shaftRadius,
-	            "Z"
-	        ].join(" "),
-	        apex: {
-	            "x": start + (shoulder - start) / 2,
-	            "y": 0
-	        }
-	    };
-	}
+	    rel.enter()
+	        .append("g")
+	            .attr("class", "group")
+	            .attr("transform", (rl) => {
+	                return "translate("
+	                + (rl.source.x + rl.source.radius)
+	                + ","
+	                + (rl.source.y + rl.source.radius)
+	                + ")" + "rotate(" + rl.angle + ")";
+	            })
+	        .append("text")
+	            .attr("x", (rl) => { return rl.path.apex.x; })
+	            .attr("y", (rl) => { return rl.path.apex.y - 40; })
+	            .attr("fill", "#333333")
+	            .attr("class", "relationship type")
+	            .attr("text-anchor", "middle")
+	            .attr("font-size",  "50px")
+	            .attr("alignment-baseline", "central")
+	            .text((rl) => { return rl.type; });
 
-	curvedArrow(startRadius, endRadius, endCentre, minOffset, arrowWidth, headWidth, headLength){
-		let startAttach, endAttach, offsetAngle;
+	    rel.enter()
+	        .append("g")
+	            .attr("class", "group")
+	            .attr("transform", (rl) => {
+	                return "translate("
+	                + (rl.source.x + rl.source.radius)
+	                + ","
+	                + (rl.source.y + rl.source.radius)
+	                + ")" + "rotate(" + rl.angle + ")";
+	            })
+	        .append("path")
+	            .attr("class", "relationship bubble")
+	            .attr("transform", (rl) => {
+	                return "translate("
+	                + rl.path.apex.x
+	                + ","
+	                + rl.path.apex.y
+	                + ")";
+	            })
+	            .attr("d", (rl) => { return rl.propertiesPath; })
+	            .attr("fill", "white")
+	            .attr("stroke", "#333333")
+	            .attr("stroke-width", 2);
 
-		function square(l){ return l * l; }
-
-		let radiusRatio = startRadius / (endRadius + headLength);
-		let homotheticCenter = -endCentre * radiusRatio / (1 - radiusRatio);
-
-		function intersectWithOtherCircle(fixedPoint, radius, xCenter, polarity){
-			let gradient = fixedPoint.y / (fixedPoint.x - homotheticCenter);
-			let hc = fixedPoint.y - gradient * fixedPoint.x;
-
-			let A = 1 + square(gradient);
-			let B = 2 * (gradient * hc - xCenter);
-			let C = square(hc) + square(xCenter) - square(radius);
-
-			let intersection = { "x": (-B + polarity * Math.sqrt( square( B ) - 4 * A * C )) / (2 * A) };
-			intersection["y"] = (intersection.x - homotheticCenter) * gradient;
-
-			return intersection;
-		}
-
-		if(endRadius + headLength > startRadius){
-			offsetAngle = minOffset / startRadius;
-			startAttach = {
-				x: Math.cos( offsetAngle ) * (startRadius),
-				y: Math.sin( offsetAngle ) * (startRadius)
-			};
-			endAttach = intersectWithOtherCircle( startAttach, endRadius + headLength, endCentre, -1 );
-		} else {
-			offsetAngle = minOffset / endRadius;
-			endAttach = {
-				x: endCentre - Math.cos( offsetAngle ) * (endRadius + headLength),
-				y: Math.sin( offsetAngle ) * (endRadius + headLength)
-			};
-			startAttach = intersectWithOtherCircle( endAttach, startRadius, 0, 1 );
-		}
-
-		let
-		g1 = -startAttach.x / startAttach.y,
-		c1 = startAttach.y + (square( startAttach.x ) / startAttach.y),
-		g2 = -(endAttach.x - endCentre) / endAttach.y,
-		c2 = endAttach.y + (endAttach.x - endCentre) * endAttach.x / endAttach.y;
-
-		let cx = ( c1 - c2 ) / (g2 - g1);
-		let cy = g1 * cx + c1;
-
-		let arcRadius = Math.sqrt(square(cx - startAttach.x) + square(cy - startAttach.y));
-
-		function startTangent(dr){
-			let dx = (dr < 0 ? -1 : 1) * Math.sqrt(square(dr) / (1 + square(g1)));
-			let dy = g1 * dx;
-			return [
-			startAttach.x + dx,
-			startAttach.y + dy
-			].join(",");
-		}
-
-		function endTangent(dr){
-			let dx = (dr < 0 ? -1 : 1) * Math.sqrt(square(dr) / (1 + square(g2)));
-			let dy = g2 * dx;
-			return [
-			endAttach.x + dx,
-			endAttach.y + dy
-			].join(",");
-		}
-
-		function endNormal(dc){
-			let dx = (dc < 0 ? -1 : 1) * Math.sqrt(square(dc) / (1 + square(1 / g2)));
-			let dy = dx / g2;
-			return [
-			endAttach.x + dx,
-			endAttach.y - dy
-			].join(",");
-		}
-
-		let shaftRadius = arrowWidth / 2;
-		let headRadius = headWidth / 2;
-
-		return {
-			outline: [
-			"M", startTangent(-shaftRadius),
-			"L", startTangent(shaftRadius),
-			"A", arcRadius - shaftRadius, arcRadius - shaftRadius, 0, 0, minOffset > 0 ? 0 : 1, endTangent(-shaftRadius),
-			"L", endTangent(-headRadius),
-			"L", endNormal(headLength),
-			"L", endTangent(headRadius),
-			"L", endTangent(shaftRadius),
-			"A", arcRadius + shaftRadius, arcRadius + shaftRadius, 0, 0, minOffset < 0 ? 0 : 1, startTangent(-shaftRadius)
-			].join( " " ),
-			apex: {
-				"x": cx,
-				"y": cy > 0 ? cy - arcRadius : cy + arcRadius
-			}
-		};
+	    let gProperties = rel.enter()
+	        .append("g")
+	        .attr("class", "relationship properties")
+	        .attr("transform", (rl) => {
+	            if(rl.propertiesList) {
+	                return "translate("
+	                + (rl.source.x + rl.source.radius)
+	                + ","
+	                + (rl.source.y + rl.source.radius)
+	                + ")" + "rotate(" + rl.angle + ")";
+	            } else { 
+	                return "";
+	            }
+	        })
+	    gProperties.selectAll("text")
+	        .enter()    
+	        .data((rl) => { 
+	            if(rl.propertiesList){
+	                let list = [];
+	                for(let i = 0; i < rl.propertiesList.length; i++){;
+	                    list.push({
+	                        "text": rl.propertiesList[i],
+	                        "x": rl.path.apex.x,
+	                        "y": rl.path.apex.y + (i * 50) + 40,
+	                        "color": rl.fill,
+	                        "angle": rl.angle
+	                    });
+	                }
+	                return list;
+	            } else {
+	                return [];
+	            }
+	        })
+	        .enter()
+	        .append("text")
+	            .attr("x", (p) => { return p.x; })
+	            .attr("y", (p) => { return p.y; })
+	            .attr("fill", (p) => { return p.color; })
+	            .attr("class", "properties")
+	            .attr("text-anchor", "middle")
+	            .attr("font-size",  "50px")
+	            .attr("alignment-baseline", "central")
+	            .text((p) => { return p.text; });
 	}
 }

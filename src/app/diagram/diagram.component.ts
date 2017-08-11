@@ -6,8 +6,6 @@ import { select, selectAll } from 'd3';
 import { Diagram } from './models/diagram.model';
 import { Node } from './models/node.model';
 import { Relationship } from './models/relationship.model';
-import { RenderNodes } from './models/render-nodes';
-import { RenderRelationships } from './models/render-relationships';
 
 @Component({
     selector: 'app-diagram',
@@ -31,6 +29,8 @@ export class DiagramComponent implements OnInit {
     constructor(@Inject(FirebaseApp) firebase: any) {
         this.dbref = firebase.database().ref();
         this.user = firebase.auth().currentUser;
+
+        this.diagram = new Diagram();
     }
 
     ngOnInit() {
@@ -44,11 +44,11 @@ export class DiagramComponent implements OnInit {
             .attr("class", "layer relationships");
 
         if(this.user){
-            this.getEntitiesData(this.user.uid, 0);
+            this.getEntities(this.user.uid, 0);
         }
     }
 
-    getEntitiesData(entityId, lvl){
+    getEntities(entityId, lvl){
         if(lvl === 10) { return; }
 
         this.solvedEntities[entityId] = true;
@@ -57,7 +57,7 @@ export class DiagramComponent implements OnInit {
             .child('users/' + entityId + '/entities')
             .on('child_added', (snapShot) => {
                 if(snapShot.val() && !this.solvedEntities[snapShot.val()]){
-                    this.getEntitiesData(snapShot.val(), lvl + 1);
+                    this.getEntities(snapShot.val(), lvl + 1);
                 }
             });
 
@@ -91,25 +91,19 @@ export class DiagramComponent implements OnInit {
         this.nodes[id] = node;
 
 
-        this.render();
+        this.init();
     }
 
     // Render diagram
-    render() {
-        let nodes, relationships;
-
-        this.diagram = new Diagram();
-        this.diagram.load({
+    init() {
+        this.diagram.init({
             nodes: this.nodes
         });
 
         selectAll('svg.graph > g > *').remove();
-        
-        nodes = new RenderNodes();
-        nodes.render(this.gNodes, this.diagram.nodes);
 
-        relationships = new RenderRelationships();
-        relationships.render(this.gRelationships, this.diagram.relationships);
+        this.diagram.renderNodes(this.gNodes);
+        this.diagram.renderRelationships(this.gRelationships);
     }
 
     getTxtLength(text) {

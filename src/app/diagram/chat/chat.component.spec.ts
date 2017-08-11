@@ -8,35 +8,35 @@ import { AngularFireModule } from 'angularfire2';
 import { ChatComponent } from './chat.component';
 
 describe('ChatComponent', () => {
-  let component: ChatComponent;
-  let fixture: ComponentFixture<ChatComponent>;
+    let component: ChatComponent;
+    let fixture: ComponentFixture<ChatComponent>;
 
-  beforeEach(async(() => {
-    const firebaseConfig = {
-        apiKey: "AIzaSyD1YosqyxZALbp9VsG7L9opMqZiZz1fjz8",
-        authDomain: "family-tree-app.firebaseapp.com",
-        databaseURL: "https://family-tree-app.firebaseio.com",
-        projectId: "family-tree-app",
-        storageBucket: "family-tree-app.appspot.com",
-        messagingSenderId: "862196492890"
-    }
+    beforeEach(async(() => {
+        const firebaseConfig = {
+            apiKey: "AIzaSyD1YosqyxZALbp9VsG7L9opMqZiZz1fjz8",
+            authDomain: "family-tree-app.firebaseapp.com",
+            databaseURL: "https://family-tree-app.firebaseio.com",
+            projectId: "family-tree-app",
+            storageBucket: "family-tree-app.appspot.com",
+            messagingSenderId: "862196492890"
+        }
 
-    TestBed.configureTestingModule({
-      declarations: [ ChatComponent ],
-      imports: [
-          AngularFireModule.initializeApp(firebaseConfig)
-      ]
-    })
-    .compileComponents();
-  }));
+        TestBed.configureTestingModule({
+            declarations: [ ChatComponent ],
+            imports: [
+            AngularFireModule.initializeApp(firebaseConfig)
+            ]
+        })
+        .compileComponents();
+    }));
 
-  beforeEach(() => {
-    fixture = TestBed.createComponent(ChatComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
-  });
+    beforeEach(() => {
+        fixture = TestBed.createComponent(ChatComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+    });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+    it('should create', () => {
+        expect(component).toBeTruthy();
+    });
 });
