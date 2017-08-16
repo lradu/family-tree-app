@@ -1,6 +1,6 @@
 import { FamilyTreeAppPage } from './app.po';
 
-describe('family-tree-app App', function() {
+describe('family-tree-app App', () => {
   let page: FamilyTreeAppPage;
 
   beforeEach(() => {

@@ -1,6 +1,7 @@
 import { Component, OnInit, Inject } from '@angular/core';
 
-import { FirebaseApp } from 'angularfire2';
+import { AngularFireDatabase } from 'angularfire2/database';
+import { AngularFireAuth } from 'angularfire2/auth';
 import { select, selectAll } from 'd3';
 
 import { Diagram } from './models/diagram.model';
@@ -14,11 +15,10 @@ import { Relationship } from './models/relationship.model';
 })
 
 export class DiagramComponent implements OnInit {
-    private dbref: any;
+    private db: any;
     private user: any;
 
     private diagram;
-
     private svg: any;
     private gNodes: any;
     private gRelationships: any;
@@ -26,9 +26,9 @@ export class DiagramComponent implements OnInit {
     private nodes = {};
     private solvedEntities = {};
 
-    constructor(@Inject(FirebaseApp) firebase: any) {
-        this.dbref = firebase.database().ref();
-        this.user = firebase.auth().currentUser;
+    constructor(db: AngularFireDatabase, auth: AngularFireAuth) {
+        this.db = db.database.ref();
+        this.user = auth.auth.currentUser;
 
         this.diagram = new Diagram();
     }
@@ -53,7 +53,7 @@ export class DiagramComponent implements OnInit {
 
         this.solvedEntities[entityId] = true;
 
-        this.dbref
+        this.db
             .child('users/' + entityId + '/entities')
             .on('child_added', (snapShot) => {
                 if(snapShot.val() && !this.solvedEntities[snapShot.val()]){
@@ -61,7 +61,7 @@ export class DiagramComponent implements OnInit {
                 }
             });
 
-        this.dbref
+        this.db
             .child('users/' + entityId + '/info')
             .on('value', (snapShot) => {
                 if(snapShot.val()){

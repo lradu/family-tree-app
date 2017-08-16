@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 
 import { authRouting } from './auth.routing';
 import { LoginAnonymouslyComponent } from './auth.component';
+import { AngularFireAuth } from 'angularfire2/auth'
 
 @NgModule({
     imports: [
@@ -11,6 +12,9 @@ import { LoginAnonymouslyComponent } from './auth.component';
     ],
     declarations: [
         LoginAnonymouslyComponent
+    ],
+    providers: [
+      AngularFireAuth
     ]
 })
 

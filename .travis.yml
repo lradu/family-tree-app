@@ -24,7 +24,7 @@ before_install:
 
 before_script:
   - npm install -g firebase-tools
-  - npm install -g angular-cli@1.0.0-beta.24
+  - npm install -g angular-cli@latest
 
 script:
   - ng test --watch=false

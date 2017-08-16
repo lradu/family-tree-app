@@ -2,7 +2,7 @@ import { Tag } from './tag';
 import { Reply } from './reply';
 
 export class Entity {
-    private dbref: any;
+    private db: any;
 
     public current: string = "me";
     public entities: Array<string> = ["partner", "father", "mother"];
@@ -11,16 +11,16 @@ export class Entity {
     public tag: Tag;
     public user: any;
 
-    constructor(dbref, user) {
-        this.dbref = dbref;
-        this.reply = new Reply(this.dbref);
-        this.tag = new Tag(this.dbref);
+    constructor(db, user) {
+        this.db = db;
+        this.reply = new Reply(this.db);
+        this.tag = new Tag(this.db);
         this.user = user;
     }
 
     // add new entity
     create(tag, entity, entityId){
-        this.dbref.child('users')
+        this.db.child('users')
         .push({
             entities: {
                 [entity]: true
@@ -75,7 +75,7 @@ export class Entity {
 
     // add new entity to user
     post(uid, entity, entityId){
-        return this.dbref.child("users/" + uid + '/entities')
+        return this.db.child("users/" + uid + '/entities')
         .update({
             [entity]: entityId
         });

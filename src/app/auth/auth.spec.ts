@@ -5,6 +5,7 @@ import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
 import { AngularFireModule } from 'angularfire2';
+import { AngularFireAuth } from 'angularfire2/auth';
 
 import { LoginAnonymouslyComponent } from './auth.component';
 
@@ -29,6 +30,9 @@ describe('LoginAnonymouslyComponent', () => {
             imports: [
                 AngularFireModule.initializeApp(firebaseConfig),
                 RouterTestingModule
+            ],
+            providers: [
+              AngularFireAuth
             ]
         })
         .compileComponents();

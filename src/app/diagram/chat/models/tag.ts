@@ -1,16 +1,16 @@
 export class Tag {
-    private dbref: any;
+    private db: any;
 
     public solved: any;
     public chatId: string;
 
-    constructor(dbref) {
-        this.dbref = dbref;
+    constructor(db) {
+        this.db = db;
     }
 
     // get solved tags
     get(uid){
-        return this.dbref
+        return this.db
             .child('users/' + uid + '/solvedTags')
             .once('value', (snapShot) => {
                 this.solved = snapShot.val();
@@ -24,7 +24,7 @@ export class Tag {
             path = '/info';
         }
 
-        return this.dbref
+        return this.db
             .child('users/' + uid + path)
             .update({
                 [reply.tag]: message
@@ -33,7 +33,7 @@ export class Tag {
 
     // add tag to solved
     postSolved(tag, uid){
-        return this.dbref
+        return this.db
             .child('users/' + uid + '/solvedTags')
             .update({
                 [tag]: true

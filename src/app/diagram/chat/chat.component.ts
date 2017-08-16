@@ -1,6 +1,7 @@
 import { Component, AfterViewInit, Inject } from '@angular/core';
 
-import { FirebaseApp } from 'angularfire2';
+import { AngularFireDatabase } from 'angularfire2/database';
+import { AngularFireAuth } from 'angularfire2/auth';
 import { Entity } from './models/entity'
 
 @Component({
@@ -10,24 +11,26 @@ import { Entity } from './models/entity'
 })
 
 export class ChatComponent implements AfterViewInit {
-    private dbref: any;
+    private db: any;
 
     private entity: Entity;
     private messages: any = [];
     private user: any = {};
 
-    constructor(@Inject(FirebaseApp) firebase: any) {
-        this.dbref = firebase.database().ref();
-        this.user.uid = firebase.auth().currentUser.uid;
-
-        this.entity = new Entity(this.dbref, this.user);
+    constructor(db: AngularFireDatabase, auth: AngularFireAuth) {
+        this.db = db.database.ref();
+        const user = auth.auth.currentUser
+        if(user){
+            this.user.uid = user.uid;
+        }
+        this.entity = new Entity(this.db, this.user);
     }
 
     ngAfterViewInit() {
         this.entity.id = this.user.uid;
         
         // get the user's chat
-        this.dbref
+        this.db
             .child('users/' + this.user.uid)
             .once('value', (snapshot) => {
                 if(snapshot.val()){
@@ -47,13 +50,13 @@ export class ChatComponent implements AfterViewInit {
 
     // create a new chat
     create(){
-        return this.dbref
+        return this.db
             .child('chats')
             .push({
                 user: this.user.uid
             }).then((newChat) => {
                 this.user.chat = newChat.key;
-                this.dbref
+                this.db
                     .child('users/' + this.user.uid)
                     .update({
                         chat: newChat.key
@@ -70,7 +73,7 @@ export class ChatComponent implements AfterViewInit {
 
     // get chat messages
     get(){
-        this.dbref
+        this.db
             .child('messages/' + this.user.chat)
             .on('child_added', (snapshot) => {
                 this.messages.unshift(snapshot.val());
@@ -80,7 +83,7 @@ export class ChatComponent implements AfterViewInit {
     // post message
     post(message, name){
         const date = + new Date();
-        this.dbref
+        this.db
             .child('messages/' + this.user.chat)
             .push({
                 'name': name,

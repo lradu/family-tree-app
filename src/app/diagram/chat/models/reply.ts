@@ -1,17 +1,17 @@
 export class Reply {
-    private dbref: any;
+    private db: any;
 
     public current: any;
     public all = [];
     public queue = [];
 
-    constructor(dbref) {
-        this.dbref = dbref;
+    constructor(db) {
+        this.db = db;
     }
 
     // get replies
     get() {
-        return this.dbref
+        return this.db
             .child('replies')
             .orderByChild('priority')
             .once('value', (snapShot) => {
@@ -64,7 +64,7 @@ export class Reply {
     // add reply to chat
     post(id){
         const date = + new Date();
-        return this.dbref
+        return this.db
             .child('messages/' + id)
             .push({
                 'message': this.current.message,

@@ -4,6 +4,8 @@ import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
 import { AngularFireModule } from 'angularfire2';
+import { AngularFireDatabase } from 'angularfire2/database';
+import { AngularFireAuth } from 'angularfire2/auth';
 
 import { ChatComponent } from './chat.component';
 
@@ -24,7 +26,11 @@ describe('ChatComponent', () => {
         TestBed.configureTestingModule({
             declarations: [ ChatComponent ],
             imports: [
-            AngularFireModule.initializeApp(firebaseConfig)
+                AngularFireModule.initializeApp(firebaseConfig)
+            ],
+            providers: [
+                AngularFireDatabase,
+                AngularFireAuth
             ]
         })
         .compileComponents();

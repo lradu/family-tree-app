@@ -23,8 +23,6 @@ export const environment = {
     }
 };
 
-
-
 @NgModule({
     declarations: [
         AppComponent,
