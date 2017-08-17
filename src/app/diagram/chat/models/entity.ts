@@ -96,8 +96,6 @@ export class Entity {
 
         // check if user has a partner
         if(this.entities[0] === "partner") {
-
-            console.log(this.user);
             if(this.user.partner !== "yes") {
                 this.entities.shift();
                 this.next();

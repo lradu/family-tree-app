@@ -22,7 +22,7 @@ export class Diagram {
 
 		for(let key in nodes){
 			node = nodes[key]
-			node.x = this.nodes.length * 400;
+			node.y = this.nodes.length * 400;
 
 			if(node.properties.length){
 				length = node.properties.length;
@@ -33,36 +33,25 @@ export class Diagram {
 	}
 
 	initRelationships(relationships){
-		let group, relationship, distance;
+		let relationship, distance;
 
-		for(let g in relationships) {
-			group = [];
-			for(let key in relationships[g]){
-				relationship = new Relationship();
-				Object.assign(relationship, relationships[g][key]);
+		for(let key in relationships){
+			relationship = new Relationship();
+			Object.assign(relationship, relationships[key]);
 
-				if(relationship.properties){
-					relationship.propertiesList = relationship.properties.split('\n');
-					length = relationship.propertiesList.length;
-					relationship.propertiesPath = SpeechBubblePath(relationship.propertiesWidth * 2, length * 50, "vertical", 10, 10);
-				}
-
-				relationship.source = this.nodes.find( x => x.id == relationship.startNode);
-				relationship.target = this.nodes.find( x => x.id == relationship.endNode);
-				relationship.angle = relationship.source.angleTo(relationship.target);
-				relationship.group = g;
-
-				distance = relationship.source.distanceTo(relationship.target) - 12;
-				if(Object.keys(relationships[g]).length === 1) {
-					relationship.path = HorizontalArrow(relationship.source.radius + 12, distance - relationship.target.radius, 5);
-				} else {
-					relationship.path = CurvedArrow(relationship.source.radius + 12, relationship.target.radius, distance, (group.length + 1) * 10, 5, 20, 20);
-				}
-
-
-				group.push(relationship);
+			if(relationship.properties){
+				length = relationship.properties.length;
+				relationship.propertiesPath = SpeechBubblePath(relationship.propertiesWidth * 2, length * 24, "vertical", 10, 10);
 			}
-			this.relationships.push(group);
+
+			relationship.source = this.nodes.find( x => x.id == relationship.startNode);
+			relationship.target = this.nodes.find( x => x.id == relationship.endNode);
+			if(!relationship.source || !relationship.target) { continue; }
+
+			relationship.angle = relationship.source.angleTo(relationship.target);
+			distance = relationship.source.distanceTo(relationship.target) - 12;
+			relationship.path = relationship.path = CurvedArrow(relationship.source.radius + 12, relationship.target.radius, distance, 20, 5, 20, 20);
+			this.relationships.push([relationship]);
 		}
 	}
 
@@ -216,7 +205,7 @@ export class Diagram {
 	        .append("g")
 	        .attr("class", "relationship properties")
 	        .attr("transform", (rl) => {
-	            if(rl.propertiesList) {
+	            if(rl.properties) {
 	                return "translate("
 	                + (rl.source.x + rl.source.radius)
 	                + ","
@@ -229,13 +218,13 @@ export class Diagram {
 	    gProperties.selectAll("text")
 	        .enter()    
 	        .data((rl) => { 
-	            if(rl.propertiesList){
+	            if(rl.properties){
 	                let list = [];
-	                for(let i = 0; i < rl.propertiesList.length; i++){;
+	                for(let i = 0; i < rl.properties.length; i++){;
 	                    list.push({
-	                        "text": rl.propertiesList[i],
+	                        "text": rl.properties[i],
 	                        "x": rl.path.apex.x,
-	                        "y": rl.path.apex.y + (i * 50) + 40,
+	                        "y": rl.path.apex.y + (i * 12) + 30,
 	                        "color": rl.fill,
 	                        "angle": rl.angle
 	                    });
@@ -252,7 +241,7 @@ export class Diagram {
 	            .attr("fill", (p) => { return p.color; })
 	            .attr("class", "properties")
 	            .attr("text-anchor", "middle")
-	            .attr("font-size",  "50px")
+	            .attr("font-size", "24px")
 	            .attr("alignment-baseline", "central")
 	            .text((p) => { return p.text; });
 	}

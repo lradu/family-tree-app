@@ -24,6 +24,7 @@ export class DiagramComponent implements OnInit {
     public gRelationships: any;
 
     private nodes = {};
+    private relationships = {}
     private solvedEntities = {};
 
     constructor(db: AngularFireDatabase, auth: AngularFireAuth) {
@@ -56,8 +57,11 @@ export class DiagramComponent implements OnInit {
         this.db
             .child('users/' + entityId + '/entities')
             .on('child_added', (snapShot) => {
-                if(snapShot.val() && !this.solvedEntities[snapShot.val()]){
-                    this.getEntities(snapShot.val(), lvl + 1);
+                if(snapShot.val()) {
+                    this.solveRelationships(snapShot.key, snapShot.val(), entityId);
+                    if(!this.solvedEntities[snapShot.val()]){
+                        this.getEntities(snapShot.val(), lvl + 1);     
+                    }
                 }
             });
 
@@ -94,10 +98,24 @@ export class DiagramComponent implements OnInit {
         this.init();
     }
 
+    solveRelationships(tag, endNode, startNode){
+        const key = startNode + endNode;
+        if(!this.relationships[key]) {
+            this.relationships[key] = {};
+        }
+        this.relationships[key].startNode = startNode;
+        this.relationships[key].endNode = endNode;
+        this.relationships[key].propertiesWidth = this.getTxtLength(tag);
+        this.relationships[key].properties = [tag];
+        this.relationships[key].id = startNode;
+    }
+
+
     // Render diagram
     init() {
         this.diagram.init({
-            nodes: this.nodes
+            nodes: this.nodes,
+            relationships: this.relationships
         });
 
         selectAll('svg.graph > g > *').remove();

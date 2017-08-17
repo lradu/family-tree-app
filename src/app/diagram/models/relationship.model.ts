@@ -1,6 +1,6 @@
 export class Relationship {
 	public type: string = "";
-	public properties: string = "";
+	public properties: Array<string>;
 	public propertiesWidth: number = 0;
 	public startNode: string = "";
 	public endNode: string = "";
