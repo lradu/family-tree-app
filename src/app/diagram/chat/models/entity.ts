@@ -1,5 +1,6 @@
 import { Tag } from './tag';
 import { Reply } from './reply';
+import { relationships } from '../../../diagram/models/relationship.model';
 
 export class Entity {
     private db: any;
@@ -16,23 +17,24 @@ export class Entity {
         this.reply = new Reply(this.db);
         this.tag = new Tag(this.db);
         this.user = user;
+        this.user.tag = "me";
     }
 
     // add new entity
-    create(tag, entity, entityId){
+    create(entity){
+        let rel = relationships[entity + this.user.tag + this.user.gender] || 'me';
+
         this.db.child('users')
         .push({
             entities: {
-                [entity]: true
+                [rel]: this.user.uid
             },
             solvedTags: {
-                [tag]: true
+                [rel]: true
             }
         }).then((newEntity) => {
             this.id = newEntity.key;
-
-            this.post(entityId, this.current, newEntity.key);
-            this.post(newEntity.key, this.current, entityId);
+            this.post(this.user.uid, this.current, newEntity.key);
             this.init();
         });
     }
@@ -43,8 +45,8 @@ export class Entity {
         if(this.reply.next(this.current)) {
             this.reply.post(this.user.chat);
         } else {
-            const next = this.next();
-            if(next) {
+            const goToNext = this.next();
+            if(goToNext) {
                 this.reply.post(this.user.chat);
             } else {
                 this.next(); 
@@ -94,6 +96,8 @@ export class Entity {
 
         // check if user has a partner
         if(this.entities[0] === "partner") {
+
+            console.log(this.user);
             if(this.user.partner !== "yes") {
                 this.entities.shift();
                 this.next();
@@ -104,6 +108,8 @@ export class Entity {
         // solve next entity
         this.current = this.entities[0];
         this.entities.shift();
-        this.create(this.current, this.current, this.user.uid);
+        this.create(this.current);
+
+        return true;
     } 
 }

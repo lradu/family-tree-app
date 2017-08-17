@@ -30,5 +30,5 @@ script:
   - ng test --watch=false
 
 after_success:
-  - ng build --prod
+  - ng build --target==production
   - firebase deploy --token $FIREBASE_TOKEN --non-interactive

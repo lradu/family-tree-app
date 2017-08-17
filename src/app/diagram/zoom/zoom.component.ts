@@ -59,7 +59,7 @@ export class ZoomComponent implements AfterViewInit {
             .call(this.zoom.scaleBy, 1.2);
     }
 
-    zoomOut(svg) {
+    zoomOut() {
         this.svg.transition()
             .call(this.zoom.scaleBy, 0.8);
     }

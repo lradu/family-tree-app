@@ -12,10 +12,10 @@ import { Entity } from './models/entity'
 
 export class ChatComponent implements AfterViewInit {
     private db: any;
-
-    private entity: Entity;
-    private messages: any = [];
     private user: any = {};
+    public entity: Entity;
+    public messages: any = [];
+
 
     constructor(db: AngularFireDatabase, auth: AngularFireAuth) {
         this.db = db.database.ref();

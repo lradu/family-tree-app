@@ -18,10 +18,10 @@ export class DiagramComponent implements OnInit {
     private db: any;
     private user: any;
 
-    private diagram;
-    private svg: any;
-    private gNodes: any;
-    private gRelationships: any;
+    public diagram;
+    public svg: any;
+    public gNodes: any;
+    public gRelationships: any;
 
     private nodes = {};
     private solvedEntities = {};
