@@ -16,8 +16,8 @@ export class Diagram extends go.Diagram {
 		this.undoManager.isEnabled = true;
 
 
-		this.maleTemplate();
-		this.femaleTemplate();
+		this.personTemplate("M", "#90CAF9"); //male
+		this.personTemplate("F", "#F48FB1"); //female
 		this.linkLabel();
 		this.marriage();
 		this.parentChild();
@@ -48,36 +48,84 @@ export class Diagram extends go.Diagram {
 		}
     }
 
-	// two different node templates, one for each sex,
-	// named by the category value in the node data object
-	maleTemplate(){
-		this.nodeTemplateMap.add("M",  // male
-		this.goMake(go.Node, "Vertical",
+	// node template
+	personTemplate(sex: string, color: string){
+		this.nodeTemplateMap.add(sex,  // male
+		this.goMake(go.Node, "Auto",
             { locationSpot: go.Spot.Center, locationObjectName: "ICON" },
-            this.goMake(go.Panel,
-                { name: "ICON" },
-                this.goMake(go.Shape, "Square",
-                { width: 40, height: 40, strokeWidth: 2, fill: "white", portId: "" })
-            ),
-            this.goMake(go.TextBlock,
-                { textAlign: "center", maxSize: new go.Size(80, NaN) },
-                new go.Binding("text", "n"))
+            // for sorting, have the Node.text be the data.name
+			new go.Binding("text", "n"),
+			// bind the Part.layerName to control the Node's layer depending on whether it isSelected
+			new go.Binding("layerName", "isSelected", function(sel) { return sel ? "Foreground" : ""; }).ofObject(),
+			// define the node's outer shape
+			this.goMake(go.Shape, "Rectangle",
+			{
+				name: "SHAPE", fill: color, stroke: null,
+				// set the port properties:
+				portId: "", fromLinkable: true, toLinkable: true, cursor: "pointer"
+			}),
+			this.goMake(go.Panel, "Horizontal",
+				this.goMake(go.Picture,
+					{
+					name: "Picture",
+					desiredSize: new go.Size(39, 50),
+					margin: new go.Margin(6, 8, 6, 10),
+					},
+					new go.Binding("source", "key", this.findHeadShot)),
+				// define the panel where the text will appear
+				this.goMake(go.Panel, "Table",
+					{
+					maxSize: new go.Size(150, 999),
+					margin: new go.Margin(6, 10, 0, 3),
+					defaultAlignment: go.Spot.Left
+					},
+					this.goMake(go.RowColumnDefinition, { column: 2, width: 4 }),
+					this.goMake(go.TextBlock, this.textStyle(),  // the name
+					{
+						row: 0, column: 0, columnSpan: 5,
+						font: "12pt Segoe UI,sans-serif",
+						editable: true, isMultiline: false,
+						minSize: new go.Size(10, 16)
+					},
+					new go.Binding("text", "n").makeTwoWay()),
+
+					this.goMake(go.TextBlock, "Gender: ", this.textStyle(),
+					{ row: 1, column: 0 }),
+					this.goMake(go.TextBlock, this.textStyle(),
+					{
+						row: 1, column: 1, columnSpan: 4,
+						editable: true, isMultiline: false,
+						minSize: new go.Size(10, 14),
+						margin: new go.Margin(0, 0, 0, 3)
+					},
+					new go.Binding("text", "s").makeTwoWay()),
+				
+					this.goMake(go.TextBlock, "Age: ", this.textStyle(),
+					{ row: 2, column: 0 }),
+					this.goMake(go.TextBlock, this.textStyle(),  // age
+					{
+						row: 2, column: 1, columnSpan: 5,
+						font: "italic 9pt sans-serif",
+						wrap: go.TextBlock.WrapFit,
+						editable: true,  // by default newlines are allowed
+						minSize: new go.Size(10, 14)
+					},
+					new go.Binding("text", "a").makeTwoWay())
+				)  // end Table Panel
+			) // end Horizontal Panel
 		));
 	}
 
-	femaleTemplate(){
-		this.nodeTemplateMap.add("F",  // female
-        this.goMake(go.Node, "Vertical",
-          { locationSpot: go.Spot.Center, locationObjectName: "ICON" },
-          this.goMake(go.Panel,
-            { name: "ICON" },
-            this.goMake(go.Shape, "Circle",
-              { width: 40, height: 40, strokeWidth: 2, fill: "white", portId: "" })
-          ),
-          this.goMake(go.TextBlock,
-            { textAlign: "center", maxSize: new go.Size(80, NaN) },
-            new go.Binding("text", "n"))
-        ));
+
+	// This function provides a common style for most of the TextBlocks.
+    // Some of these values may be overridden in a particular TextBlock.
+    textStyle() {
+		return { font: "9pt  Segoe UI,sans-serif", stroke: "black" };
+	}
+
+	// This converter is used by the Picture.
+    findHeadShot(key) {
+		return "assets/headshot.svg";
 	}
 
 	// the representation of each label node -- nothing shows on a Marriage Link
@@ -108,19 +156,19 @@ export class Diagram extends go.Diagram {
       ));
 	}
 	
-  findMarriage(diagram: go.Diagram, a: number, b: number) {  // A and B are node keys
-    let nodeA = diagram.findNodeForKey(a);
-    let nodeB = diagram.findNodeForKey(b);
-    if (nodeA !== null && nodeB !== null) {
-        let it = nodeA.findLinksBetween(nodeB);  // in either direction
-        while (it.next()) {
-            let link = it.value;
-            // Link.data.category === "Marriage" means it's a marriage relationship
-            if (link.data !== null && link.data.category === "Marriage") return link;
-        }
-    }
-    return null;
-  }
+	findMarriage(diagram: go.Diagram, a: number, b: number) {  // A and B are node keys
+		let nodeA = diagram.findNodeForKey(a);
+		let nodeB = diagram.findNodeForKey(b);
+		if (nodeA !== null && nodeB !== null) {
+			let it = nodeA.findLinksBetween(nodeB);  // in either direction
+			while (it.next()) {
+				let link = it.value;
+				// Link.data.category === "Marriage" means it's a marriage relationship
+				if (link.data !== null && link.data.category === "Marriage") return link;
+			}
+		}
+		return null;
+	}
   // now process the node data to determine marriages
 	setupMarriages(diagram: go.Diagram) {
 		let model = diagram.model as go.GraphLinksModel;
@@ -171,31 +219,31 @@ export class Diagram extends go.Diagram {
 	}
   
 	// process parent-child relationships once all marriages are known
-  setupParents(diagram: go.Diagram) {
-    let model = diagram.model as go.GraphLinksModel;
-    let nodeDataArray = model.nodeDataArray;
-    for (let i = 0; i < nodeDataArray.length; i++) {
-        let data = nodeDataArray[i] as Data;
-        let key = data.key;
-        let mother = data.m;
-        let father = data.f;
-        if (mother !== undefined && father !== undefined) {
-            let link = this.findMarriage(diagram, mother, father);
-            if (link === null) {
-            // or warn no known mother or no known father or no known marriage between them
-            if (window.console) window.console.log("unknown marriage: " + mother + " & " + father);
-            continue;
-            }
-            let mdata = link.data;
-            let mlabkey = mdata.labelKeys[0];
-            let cdata = { from: mlabkey, to: key };
-            model.addLinkData(cdata);
-        }
-    }
-  }   
+	setupParents(diagram: go.Diagram) {
+		let model = diagram.model as go.GraphLinksModel;
+		let nodeDataArray = model.nodeDataArray;
+		for (let i = 0; i < nodeDataArray.length; i++) {
+			let data = nodeDataArray[i] as Data;
+			let key = data.key;
+			let mother = data.m;
+			let father = data.f;
+			if (mother !== undefined && father !== undefined) {
+				let link = this.findMarriage(diagram, mother, father);
+				if (link === null) {
+				// or warn no known mother or no known father or no known marriage between them
+				if (window.console) window.console.log("unknown marriage: " + mother + " & " + father);
+				continue;
+				}
+				let mdata = link.data;
+				let mlabkey = mdata.labelKeys[0];
+				let cdata = { from: mlabkey, to: key };
+				model.addLinkData(cdata);
+			}
+		}
+	}   
 }
 
-// n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: attributes/markers
+// n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: age 
 type Data = {
     key: number,
     n: string,
@@ -204,5 +252,6 @@ type Data = {
     f: number,
     ux: number,
     vir: number,
-    a: string
+	a: string,
+	c: string
 }
