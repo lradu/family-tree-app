@@ -9,7 +9,6 @@ import { AngularFireAuth } from 'angularfire2/auth';
 
 import { DiagramComponent } from './diagram.component';
 import { ChatComponent } from './chat/chat.component';
-import { ZoomComponent } from './zoom/zoom.component';
 
 describe('DiagramComponent', () => {
     let component: DiagramComponent;
@@ -28,8 +27,7 @@ describe('DiagramComponent', () => {
         TestBed.configureTestingModule({
             declarations: [ 
                 DiagramComponent,
-                ChatComponent,
-                ZoomComponent
+                ChatComponent
             ],
             imports: [
                 AngularFireModule.initializeApp(firebaseConfig)
