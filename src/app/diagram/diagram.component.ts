@@ -4,7 +4,6 @@ import { AngularFireDatabase } from 'angularfire2/database';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { Diagram } from './models/diagram.model';
-import { Node } from './models/node.model';
 import { Relationship } from './models/relationship.model';
 
 @Component({
@@ -35,8 +34,7 @@ export class DiagramComponent implements AfterViewInit {
     }
 
     ngAfterViewInit(){
-        this.diagram = new Diagram();
-        this.diagram.init({});
+        this.diagram = new Diagram('diagram');
     }
 
     getEntities(entityId, lvl){
@@ -92,9 +90,4 @@ export class DiagramComponent implements AfterViewInit {
     //     }
     // }
 
-
-    // Render diagram
-    init() {
-       this.diagram.init({});   
-    }
 }
