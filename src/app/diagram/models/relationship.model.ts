@@ -1,5 +1,3 @@
-export class Relationship {}
-
 export const relationships = {
 	'mepartnermale': 'partner',
 	'partnermemale': 'partner',

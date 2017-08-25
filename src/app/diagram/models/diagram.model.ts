@@ -1,6 +1,7 @@
 import * as go from 'gojs';
 
 import { GenogramLayout } from './layout.model';
+import { Node } from './node.model';
 
 export class Diagram extends go.Diagram {
 	goMake: any;
@@ -116,6 +117,25 @@ export class Diagram extends go.Diagram {
 		));
 	}
 
+	// update existing node
+	updateNode(data: Node){
+		let node = this.findNodeForKey(data.key);
+		if(node){
+			// this.startTransaction('update node ' + data.key);
+			// this.model.setDataProperty(node.data, "f", 1);
+			// this.commitTransaction('update node ' + data.key);
+		} else {
+			this.addNode(data);
+		}
+	}
+
+	// add a new Node
+	addNode(data: Node){
+		this.startTransaction('add node ' + data.key);
+		this.model.addNodeData(data);
+		this.commitTransaction('add node ' + data.key);		
+	}
+
 
 	// This function provides a common style for most of the TextBlocks.
     // Some of these values may be overridden in a particular TextBlock.
@@ -174,7 +194,7 @@ export class Diagram extends go.Diagram {
 		let model = diagram.model as go.GraphLinksModel;
 		let nodeDataArray = model.nodeDataArray;
 		for (let i = 0; i < nodeDataArray.length; i++) {
-			let data = nodeDataArray[i] as Data;
+			let data = nodeDataArray[i] as Node;
 			let key = data.key;
 			if (data.ux !== undefined) {
 				let uxs: Array<number> = [];
@@ -188,7 +208,7 @@ export class Diagram extends go.Diagram {
 					let link = this.findMarriage(diagram, key, wife);
 					if (link === null) {
 						// add a label node for the marriage link
-						let mlab = { s: "LinkLabel" } as Data;
+						let mlab = { s: "LinkLabel" } as Node;
 						model.addNodeData(mlab);
 						// add the marriage link itself, also referring to the label node
 						let mdata = { from: key, to: wife, labelKeys: [mlab.key], category: "Marriage" };
@@ -207,7 +227,7 @@ export class Diagram extends go.Diagram {
 					let link = this.findMarriage(diagram, key, husband);
 					if (link === null) {
 						// add a label node for the marriage link
-						let mlab = { s: "LinkLabel" } as Data;
+						let mlab = { s: "LinkLabel" } as Node;
 						model.addNodeData(mlab);
 						// add the marriage link itself, also referring to the label node
 						let mdata = { from: key, to: husband, labelKeys: [mlab.key], category: "Marriage" };
@@ -223,7 +243,7 @@ export class Diagram extends go.Diagram {
 		let model = diagram.model as go.GraphLinksModel;
 		let nodeDataArray = model.nodeDataArray;
 		for (let i = 0; i < nodeDataArray.length; i++) {
-			let data = nodeDataArray[i] as Data;
+			let data = nodeDataArray[i] as Node;
 			let key = data.key;
 			let mother = data.m;
 			let father = data.f;
@@ -241,17 +261,4 @@ export class Diagram extends go.Diagram {
 			}
 		}
 	}   
-}
-
-// n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: age 
-type Data = {
-    key: number,
-    n: string,
-    s: string,
-    m: number,
-    f: number,
-    ux: number,
-    vir: number,
-	a: string,
-	c: string
 }

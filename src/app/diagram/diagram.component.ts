@@ -4,7 +4,7 @@ import { AngularFireDatabase } from 'angularfire2/database';
 import { AngularFireAuth } from 'angularfire2/auth';
 
 import { Diagram } from './models/diagram.model';
-import { Relationship } from './models/relationship.model';
+import { Node } from './models/node.model';
 
 @Component({
     selector: 'app-diagram',
@@ -18,8 +18,8 @@ export class DiagramComponent implements AfterViewInit {
 
     public diagram;
 
-    private nodes = {};
-    private relationships = {}
+    private keyGenerator: number = 0;
+    private entitiyKeys: Object = {};
     private solvedEntities = {};
 
     constructor(db: AngularFireDatabase, auth: AngularFireAuth) {
@@ -27,17 +27,16 @@ export class DiagramComponent implements AfterViewInit {
         this.user = auth.auth.currentUser;
     }
 
-    ngOnInit() {
-        if(this.user){
-            this.getEntities(this.user.uid, 0);
-        }
-    }
-
     ngAfterViewInit(){
+        if(this.user){
+            this.getEntities(this.user.uid,"me", this.user.uid, 0);
+        }
+
         this.diagram = new Diagram('diagram');
+        this.diagram.init([], 0);
     }
 
-    getEntities(entityId, lvl){
+    getEntities(entityId, relationship, lastEntity, lvl){
         if(lvl === 10) { return; }
 
         this.solvedEntities[entityId] = true;
@@ -46,9 +45,8 @@ export class DiagramComponent implements AfterViewInit {
             .child('users/' + entityId + '/entities')
             .on('child_added', (snapShot) => {
                 if(snapShot.val()) {
-                    //this.solveRelationships(snapShot.key, snapShot.val(), entityId);
                     if(!this.solvedEntities[snapShot.val()]){
-                        this.getEntities(snapShot.val(), lvl + 1);     
+                        this.getEntities(snapShot.val(), snapShot.key, entityId, lvl + 1);     
                     }
                 }
             });
@@ -57,37 +55,26 @@ export class DiagramComponent implements AfterViewInit {
             .child('users/' + entityId + '/info')
             .on('value', (snapShot) => {
                 if(snapShot.val()){
-                    //this.updateNode(snapShot.val(), entityId);
+                    this.solveEntity(snapShot.val(), entityId, relationship, lastEntity);
                 }
             });
     }
 
-    // updateNode(data, id){
-    //     let node = new Node();
-    //     let size = 0, longestText = '';
+    solveEntity(data, key, relationship, lastEntity){
+        // n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: age 
 
-    //     node.id = id;
+        if(!this.entitiyKeys[key]){
+            this.entitiyKeys[key] = this.keyGenerator;
+            ++this.keyGenerator;
+        }
 
-    //     Object.keys(data)
-    //         .map(key => {
-    //             let val = key +  ': ' + data[key];
-    //             if(val.length > longestText.length){
-    //                 longestText = val;
-    //             }
-    //             node.properties.push(val);
-    //         });
+        const node = {
+          key: this.entitiyKeys[key],
+          n: data.name,
+          s: data.gender === "male" ? "M":"F",
+          a: data.age
+        };
 
-    //     this.nodes[id] = node;
-
-
-    //     this.init();
-    // }
-
-    // solveRelationships(tag, endNode, startNode){
-    //     const key = startNode + endNode;
-    //     if(!this.relationships[key]) {
-    //         this.relationships[key] = {};
-    //     }
-    // }
-
+        this.diagram.updateNode(node);
+    }
 }
