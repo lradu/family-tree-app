@@ -16,7 +16,7 @@ export class DiagramComponent implements AfterViewInit {
     private db: any;
     private user: any;
 
-    public diagram;
+    public diagram: Diagram;
 
     private keyGenerator: number = 0;
     private entitiyKeys: Object = {};
@@ -63,7 +63,7 @@ export class DiagramComponent implements AfterViewInit {
     solveEntity(data, key, relationship, lastEntity){
         // n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: age 
 
-        if(!this.entitiyKeys[key]){
+        if(this.entitiyKeys[key] === undefined){
             this.entitiyKeys[key] = this.keyGenerator;
             ++this.keyGenerator;
         }
@@ -71,10 +71,17 @@ export class DiagramComponent implements AfterViewInit {
         const node = {
           key: this.entitiyKeys[key],
           n: data.name,
-          s: data.gender === "male" ? "M":"F",
-          a: data.age
+          s: data.gender || "F",
+          a: data.age,
         };
 
         this.diagram.updateNode(node);
+
+        if(relationship === 'wife' || relationship === 'husband'){
+            this.diagram.addMarriage({
+                key: this.entitiyKeys[key],
+                ux: 0
+            });
+        }
     }
 }

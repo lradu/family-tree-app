@@ -5,6 +5,7 @@ import { Node } from './node.model';
 
 export class Diagram extends go.Diagram {
 	goMake: any;
+	layout: GenogramLayout
 
 	// create and initialize the Diagram.model given an array of node data representing people
 	init(array, focusId) {
@@ -121,9 +122,15 @@ export class Diagram extends go.Diagram {
 	updateNode(data: Node){
 		let node = this.findNodeForKey(data.key);
 		if(node){
-			// this.startTransaction('update node ' + data.key);
-			// this.model.setDataProperty(node.data, "f", 1);
-			// this.commitTransaction('update node ' + data.key);
+			if(data.s && node.data.s !== data.s){
+				this.removeNode(node);
+				this.addNode(data);
+			} else {
+				this.startTransaction('update node ' + data.key);
+				Object.assign(node.data, data);
+				node.updateTargetBindings();
+				this.commitTransaction('update node ' + data.key);
+			}
 		} else {
 			this.addNode(data);
 		}
@@ -134,6 +141,30 @@ export class Diagram extends go.Diagram {
 		this.startTransaction('add node ' + data.key);
 		this.model.addNodeData(data);
 		this.commitTransaction('add node ' + data.key);		
+	}
+
+	// remove Node
+	removeNode(node){
+		this.startTransaction('remove node ' + node.data.key);
+		this.model.removeNodeData(node.data);
+		this.commitTransaction('remove node ' + node.data.key);	
+	}
+	
+	// add marriage
+	addMarriage(data){
+		let link = this.findMarriage(this, data.key, data.ux);
+
+		if(link === null) {
+			this.startTransaction('add marriage ' + data.key);
+			let model = this.model as go.GraphLinksModel;
+			// add a label node for the marriage link
+			let mlab = { s: "LinkLabel" } as Node;
+			model.addNodeData(mlab);
+			// add the marriage link itself, also referring to the label node
+			let mdata = { from: data.key, to: data.ux, labelKeys: [mlab.key], category: "Marriage" };
+			model.addLinkData(mdata);
+			this.commitTransaction('add marriage ' + data.key);
+		}
 	}
 
 
@@ -189,7 +220,8 @@ export class Diagram extends go.Diagram {
 		}
 		return null;
 	}
-  // now process the node data to determine marriages
+	
+	// now process the node data to determine marriages
 	setupMarriages(diagram: go.Diagram) {
 		let model = diagram.model as go.GraphLinksModel;
 		let nodeDataArray = model.nodeDataArray;

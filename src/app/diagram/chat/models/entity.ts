@@ -1,6 +1,6 @@
 import { Tag } from './tag';
 import { Reply } from './reply';
-import { relationships } from '../../../diagram/models/relationship.model';
+import { Relationships, Genders } from '../../../diagram/models/meta.model';
 
 export class Entity {
     private db: any;
@@ -22,19 +22,24 @@ export class Entity {
 
     // add new entity
     create(entity){
-        let rel = relationships[entity + this.user.tag + this.user.gender] || 'me';
+        const rel = Relationships[entity + this.user.tag + this.user.gender] || 'me';
+        const revRel = Relationships[this.user.tag + entity + this.user.gender] || 'me';
+        const gender = Genders[revRel] || "F";
 
         this.db.child('users')
         .push({
             entities: {
                 [rel]: this.user.uid
             },
+            info: {
+                gender: gender
+            },
             solvedTags: {
                 [rel]: true
             }
         }).then((newEntity) => {
             this.id = newEntity.key;
-            this.post(this.user.uid, this.current, newEntity.key);
+            this.post(this.user.uid, revRel, newEntity.key);
             this.init();
         });
     }
@@ -56,6 +61,13 @@ export class Entity {
 
     solve(message){
        if(this.reply.current) {
+            // reduces the gender message to M or F for entity: me
+            if(this.reply.current.tag === 'gender' && this.current === 'me'){
+                message = message[0].toUpperCase() === 'M' ? 'M':'F';
+            }
+
+            // update the user data
+            // issue: changes the tags info for all other entities
             this.user[this.reply.current.tag] = message;
            
             this.tag.post(message, this.reply.current, this.id)
