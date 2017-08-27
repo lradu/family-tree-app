@@ -87,10 +87,21 @@ export class DiagramComponent implements AfterViewInit {
 
         // create a marriage link
         if(relationship === 'wife' || relationship === 'husband') {
-            this.diagram.addMarriage({
-                key: this.entitiyKeys[key],
-                ux: 0
-            });
+            const partnerKey = this.entitiyKeys[lastEntity]
+            let data;
+            if(relationship === 'wife') {
+                data = {
+                    key: this.entitiyKeys[key],
+                    ux: partnerKey
+                }
+            } else {
+                data = {
+                    key: partnerKey,
+                    ux: this.entitiyKeys[key]
+                }
+            }
+
+            this.diagram.addMarriage(data);
         }
 
 
