@@ -18,8 +18,9 @@ export class DiagramComponent implements AfterViewInit {
 
     public diagram: Diagram;
 
-    private keyGenerator: number = 0;
+    private entities: Object = {};
     private entitiyKeys: Object = {};
+    private keyGenerator: number = 0;
     private solvedEntities = {};
 
     constructor(db: AngularFireDatabase, auth: AngularFireAuth) {
@@ -39,8 +40,15 @@ export class DiagramComponent implements AfterViewInit {
     getEntities(entityId, relationship, lastEntity, lvl){
         if(lvl === 10) { return; }
 
-        this.solvedEntities[entityId] = true;
-
+        this.solvedEntities[entityId] = true;  // mark as solved
+        if(this.entities[lastEntity]) {
+            this.entities[lastEntity][relationship] = entityId;
+        } else {
+            this.entities[lastEntity] = {
+                [relationship]: entityId
+            }
+        }
+        
         this.db
             .child('users/' + entityId + '/entities')
             .on('child_added', (snapShot) => {
@@ -77,10 +85,33 @@ export class DiagramComponent implements AfterViewInit {
 
         this.diagram.updateNode(node);
 
-        if(relationship === 'wife' || relationship === 'husband'){
+        // create a marriage link
+        if(relationship === 'wife' || relationship === 'husband') {
             this.diagram.addMarriage({
                 key: this.entitiyKeys[key],
                 ux: 0
+            });
+        }
+
+
+        // create a parent-child link
+        if(relationship === 'mother') {
+            const father = this.entities[lastEntity].father;
+            const fatherKey = this.entitiyKeys[father];
+            const motherKey = this.entitiyKeys[key];
+            const childKey = this.entitiyKeys[lastEntity];
+
+            // add marriage between parents
+            this.diagram.addMarriage({
+                key: motherKey,
+                ux: fatherKey
+            });
+
+            // add parent-child link
+            this.diagram.addParent({
+                key: childKey,
+                f: fatherKey,
+                m: motherKey
             });
         }
     }

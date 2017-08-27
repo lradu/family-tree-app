@@ -150,7 +150,7 @@ export class Diagram extends go.Diagram {
 		this.commitTransaction('remove node ' + node.data.key);	
 	}
 	
-	// add marriage
+	// add marriage link
 	addMarriage(data){
 		let link = this.findMarriage(this, data.key, data.ux);
 
@@ -167,6 +167,25 @@ export class Diagram extends go.Diagram {
 		}
 	}
 
+	// add parent link
+	addParent(data){
+		let key = data.key;
+		let mother = data.m;
+		let father = data.f;
+		let model = this.model as go.GraphLinksModel;
+
+		if (mother !== undefined && father !== undefined) {
+			let link = this.findMarriage(this, mother, father);
+			if (link !== null) {
+				this.startTransaction('add parent ' + data.key);
+				let mdata = link.data;
+				let mlabkey = mdata.labelKeys[0];
+				let cdata = { from: mlabkey, to: key };
+				model.addLinkData(cdata);
+				this.commitTransaction('add parent ' + data.key);
+			}	
+		}
+	}
 
 	// This function provides a common style for most of the TextBlocks.
     // Some of these values may be overridden in a particular TextBlock.
@@ -282,9 +301,9 @@ export class Diagram extends go.Diagram {
 			if (mother !== undefined && father !== undefined) {
 				let link = this.findMarriage(diagram, mother, father);
 				if (link === null) {
-				// or warn no known mother or no known father or no known marriage between them
-				if (window.console) window.console.log("unknown marriage: " + mother + " & " + father);
-				continue;
+					// or warn no known mother or no known father or no known marriage between them
+					if (window.console) window.console.log("unknown marriage: " + mother + " & " + father);
+					continue;
 				}
 				let mdata = link.data;
 				let mlabkey = mdata.labelKeys[0];
