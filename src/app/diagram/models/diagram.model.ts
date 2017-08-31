@@ -50,7 +50,7 @@ export class Diagram extends go.Diagram {
 		}
     }
 
-	// node template
+
 	personTemplate(sex: string, color: string){
 		this.nodeTemplateMap.add(sex,  // male
 		this.goMake(go.Node, "Auto",
@@ -59,6 +59,7 @@ export class Diagram extends go.Diagram {
 			new go.Binding("text", "n"),
 			// bind the Part.layerName to control the Node's layer depending on whether it isSelected
 			new go.Binding("layerName", "isSelected", function(sel) { return sel ? "Foreground" : ""; }).ofObject(),
+			new go.Binding("visible", "visible"),
 			// define the node's outer shape
 			this.goMake(go.Shape, "Rectangle",
 			{
@@ -118,7 +119,7 @@ export class Diagram extends go.Diagram {
 		));
 	}
 
-	// update existing node
+
 	updateNode(data: Node){
 		let node = this.findNodeForKey(data.key);
 		if(node){
@@ -136,21 +137,18 @@ export class Diagram extends go.Diagram {
 		}
 	}
 
-	// add a new Node
 	addNode(data: Node){
 		this.startTransaction('add node ' + data.key);
 		this.model.addNodeData(data);
 		this.commitTransaction('add node ' + data.key);		
 	}
 
-	// remove Node
 	removeNode(node){
 		this.startTransaction('remove node ' + node.data.key);
 		this.model.removeNodeData(node.data);
 		this.commitTransaction('remove node ' + node.data.key);	
 	}
 	
-	// add marriage link
 	addMarriage(data){
 		let link = this.findMarriage(this, data.key, data.ux);
 
@@ -164,10 +162,12 @@ export class Diagram extends go.Diagram {
 			let mdata = { from: data.key, to: data.ux, labelKeys: [mlab.key], category: "Marriage" };
 			model.addLinkData(mdata);
 			this.commitTransaction('add marriage ' + data.key);
+
+			return true;
 		}
+		return false;
 	}
 
-	// add parent link
 	addParent(data){
 		let key = data.key;
 		let mother = data.m;
@@ -183,8 +183,10 @@ export class Diagram extends go.Diagram {
 				let cdata = { from: mlabkey, to: key };
 				model.addLinkData(cdata);
 				this.commitTransaction('add parent ' + data.key);
+				return true;
 			}	
 		}
+		return false;
 	}
 
 	// This function provides a common style for most of the TextBlocks.

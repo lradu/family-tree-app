@@ -7,5 +7,6 @@ export type Node = {
     f?: number,
     ux?: number,
     vir?: number,
-	a?: string,
+    a?: string,
+    visible?: boolean
 }

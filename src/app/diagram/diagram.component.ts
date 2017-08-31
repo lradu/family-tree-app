@@ -19,7 +19,7 @@ export class DiagramComponent implements AfterViewInit {
     public diagram: Diagram;
 
     private entities: Object = {};
-    private entitiyKeys: Object = {};
+    private entityKeys: Object = {};
     private keyGenerator: number = 0;
     private solvedEntities = {};
 
@@ -69,61 +69,79 @@ export class DiagramComponent implements AfterViewInit {
     }
 
     solveEntity(data, key, relationship, lastEntity){
-        // n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: age 
-
-        if(this.entitiyKeys[key] === undefined){
-            this.entitiyKeys[key] = this.keyGenerator;
-            ++this.keyGenerator;
+        // assign key to the mother entity
+        if(relationship === "mother" && this.entityKeys['mother'] !== undefined){
+            this.entityKeys[key] = this.entityKeys['mother'];
+            delete(this.entityKeys['mother']);
         }
 
+        if(this.entityKeys[key] === undefined){
+            this.assignKey(key);
+        }
+
+        // n: name, s: sex, m: mother, f: father, ux: wife, vir: husband, a: age 
         const node = {
-          key: this.entitiyKeys[key],
-          n: data.name,
+          key: this.entityKeys[key],
+          n: data.name || relationship,
           s: data.gender || "F",
-          a: data.age,
+          a: data.age
         };
 
         this.diagram.updateNode(node);
 
+        // create parents
+        if(relationship === 'father' && this.entityKeys['mother'] === undefined) {
+            //create mother node
+            this.assignKey('mother');
+            this.diagram.updateNode({
+                key: this.entityKeys['mother'],
+                n: 'Mother',
+                s: 'F'
+            });
+
+            const fatherKey = this.entityKeys[key];
+            const motherKey = this.entityKeys['mother'];
+            const childKey = this.entityKeys[lastEntity];
+
+            // add marriage between parents
+            const isTrue = this.diagram.addMarriage({
+                key: fatherKey,
+                ux: motherKey
+            });
+
+            // prevent adding new link when already exits
+            if(isTrue) {
+            // add parent-child link
+                this.diagram.addParent({
+                    key: childKey,
+                    f: fatherKey,
+                    m: motherKey
+                });
+            }
+        }
+
         // create a marriage link
         if(relationship === 'wife' || relationship === 'husband') {
-            const partnerKey = this.entitiyKeys[lastEntity]
+            const partnerKey = this.entityKeys[lastEntity]
             let data;
             if(relationship === 'wife') {
                 data = {
-                    key: this.entitiyKeys[key],
+                    key: this.entityKeys[key],
                     ux: partnerKey
                 }
             } else {
                 data = {
                     key: partnerKey,
-                    ux: this.entitiyKeys[key]
+                    ux: this.entityKeys[key]
                 }
             }
 
             this.diagram.addMarriage(data);
         }
+    }
 
-
-        // create a parent-child link
-        if(relationship === 'mother') {
-            const father = this.entities[lastEntity].father;
-            const fatherKey = this.entitiyKeys[father];
-            const motherKey = this.entitiyKeys[key];
-            const childKey = this.entitiyKeys[lastEntity];
-
-            // add marriage between parents
-            this.diagram.addMarriage({
-                key: motherKey,
-                ux: fatherKey
-            });
-
-            // add parent-child link
-            this.diagram.addParent({
-                key: childKey,
-                f: fatherKey,
-                m: motherKey
-            });
-        }
+    private assignKey(key){
+        this.entityKeys[key] = this.keyGenerator;
+        ++this.keyGenerator;
     }
 }
