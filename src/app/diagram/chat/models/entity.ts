@@ -47,20 +47,15 @@ export class Entity {
     // initialize new entity
     init(){
         this.reply.reload(this.current);
-        if(this.reply.next(this.current)) {
-            this.reply.post(this.user.chat);
-        } else {
-            const goToNext = this.next();
-            if(goToNext) {
-                this.reply.post(this.user.chat);
-            } else {
-                this.next(); 
-            }
-        };
+
+        const goToNext = this.checkNext();
+        if(goToNext === false) {
+            this.next();
+        }
     }
 
     solve(message){
-       if(this.reply.current) {
+        if(this.reply.current) {
             // reduces the gender message to M or F for entity: me
             if(this.reply.current.tag === 'gender' && this.current === 'me'){
                 message = message[0].toUpperCase() === 'M' ? 'M':'F';
@@ -71,20 +66,28 @@ export class Entity {
             this.user[this.reply.current.tag] = message;
            
             this.tag.post(message, this.reply.current, this.id)
-               .then(() => {
-                   this.tag.postSolved(this.reply.current.tag, this.id)
-                       .then(() => {
-                           const goToNext = this.reply.next(this.current);
-                           if(goToNext){
-                               this.reply.post(this.user.chat);
-                           } else {
-                               this.next();
-                           }
-                       });
-               });
-       } else {
-           this.next();
-       } 
+                .then(() => {
+                    this.tag.postSolved(this.reply.current.tag, this.id)
+                        .then(() => {
+                            this.checkNext();
+                        });
+                });
+        } else {
+            this.next();
+        } 
+    }
+
+    checkNext(){
+        const goToNext = this.reply.next(this.current);
+        if(goToNext){
+            this.reply.post(this.user.chat);
+
+            if(this.reply.current.skip){
+                this.checkNext();
+            }
+        } else {
+            return this.next();
+        }
     }
 
     // add new entity to user
