@@ -5,9 +5,9 @@ import { AngularFireAuth } from 'angularfire2/auth';
 import { Entity } from './models/entity'
 
 @Component({
-  selector: 'diagram-chat',
-  templateUrl: './chat.component.html',
-  styleUrls: ['./chat.component.css']
+    selector: 'diagram-chat',
+    templateUrl: './chat.component.html',
+    styleUrls: ['./chat.component.css']
 })
 
 export class ChatComponent implements AfterViewInit {

@@ -78,7 +78,10 @@ export class Entity {
     }
 
     checkNext(){
-        const goToNext = this.reply.next(this.current);
+        const goToNext = this.reply.next(this.current, {
+            name: this.user.name
+        });
+        
         if(goToNext){
             this.reply.post(this.user.chat);
 

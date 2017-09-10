@@ -23,7 +23,7 @@ export class Reply {
     }
 
     // get next reply
-    next(entity){
+    next(entity, data){
         if(!this.queue.length) {
             this.current = null;
             return false;
@@ -31,7 +31,7 @@ export class Reply {
 
         this.current = Object.assign({}, this.queue[0]);
         this.queue.shift();
-        this.process(entity);
+        this.process(entity, data);
 
         return true;
     }
@@ -44,21 +44,22 @@ export class Reply {
     }
 
     // formulate reply message based on current entity
-    process(entity){
-        if(this.current.entity === "all"){
-            let message = this.current.message;
-            if(entity === "me"){
-                message =  this.current.message
-                    .replace('{$entity}', this.current.me)
-                    .replace('{$tag}', '');
-                this.current.message = message;
-            } else {
-                message = this.current.message
-                    .replace('{$entity}', this.current.all)
-                    .replace('{$tag}', entity);
-                this.current.message = message;
-            }
+    process(entity, data){
+        let message = this.current.message;
+        if(entity === "me"){
+            message =  message
+                .replace('{$entity}', this.current.me)
+                .replace('{$tag}', '');
+        } else {
+            message = message
+                .replace('{$entity}', this.current.all)
+                .replace('{$tag}', entity);
         }
+
+        message = message
+            .replace('{$name}', data.name || '');
+            
+        this.current.message = message;
     }
 
     // add reply to chat
