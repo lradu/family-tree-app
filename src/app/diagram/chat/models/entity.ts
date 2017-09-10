@@ -78,19 +78,23 @@ export class Entity {
     }
 
     checkNext(){
-        const goToNext = this.reply.next(this.current, {
-            name: this.user.name
-        });
-        
-        if(goToNext){
-            this.reply.post(this.user.chat);
-
-            if(this.reply.current.skip){
-                this.checkNext();
+        setTimeout(() => {
+            const goToNext = this.reply.next(this.current, {
+                name: this.user.name
+            });
+            
+            if(goToNext){
+                this.reply.post(this.user.chat);
+    
+                if(this.reply.current.skip){
+                    this.checkNext();
+                }
+            } else {
+                return this.next();
             }
-        } else {
-            return this.next();
-        }
+        }, 500)
+
+        return true;
     }
 
     // add new entity to user
