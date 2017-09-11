@@ -2,6 +2,8 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MdFormFieldModule, MdInputModule } from '@angular/material'
 
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireDatabase } from 'angularfire2/database';
@@ -30,7 +32,10 @@ describe('DiagramComponent', () => {
                 ChatComponent
             ],
             imports: [
-                AngularFireModule.initializeApp(firebaseConfig)
+                AngularFireModule.initializeApp(firebaseConfig),
+                BrowserAnimationsModule,
+                MdFormFieldModule,
+                MdInputModule
             ],
             providers: [
                 AngularFireDatabase,
