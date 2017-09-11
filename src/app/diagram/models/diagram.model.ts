@@ -13,7 +13,7 @@ export class Diagram extends go.Diagram {
 
 		this.layout = this.goMake(GenogramLayout, { direction: 90, layerSpacing: 30, columnSpacing: 10 });
 
-		this.initialAutoScale = go.Diagram.Uniform;
+		this.autoScale = go.Diagram.Uniform;
 		this.initialContentAlignment= go.Spot.Center;
 		this.undoManager.isEnabled = true;
 
