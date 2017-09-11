@@ -1,5 +1,10 @@
-svg.graph {
-    width: 100%;
+@import "~@angular/material/prebuilt-themes/indigo-pink.css";
+
+html {
+    font-family: Roboto,"Helvetica Neue",sans-serif;
+}
+
+html, body {
+    margin: 0;
     height: 100%;
-    font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
 }

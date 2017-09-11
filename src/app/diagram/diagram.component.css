@@ -1,28 +1,33 @@
-#diagram {
-    padding: 0;
-    position: fixed;
-    right: 0;
-    height: calc(50% - 27px);
+:host {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+}
+
+#diagram, #chat-container {
+    display: flex;
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    height: 50%;
+    max-width: 100%;
 }
 
 #chat-container {
     border-right: 1px solid #dedede;
-    padding: 10px;
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    height: calc(50% - 27px);
-}
-
-#diagram-tools {
-    opacity: 0.7;
 }
 
 @media (min-width: 992px) {
-    #diagram {
-        height: calc(100% - 54px);
+    :host {
+        flex-direction: row-reverse;
     }
+
+    #diagram {
+        height: 100%;
+        width: 70%;
+    }
+
     #chat-container {
-        height: calc(100% - 54px);
+        height: 100%;
+        width: 30%;
     }
 }
