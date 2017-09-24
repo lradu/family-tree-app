@@ -16,12 +16,26 @@
     border-right: 1px solid #dedede;
 }
 
+#tools {
+    position: fixed;
+    z-index: 4;
+    display: flex;
+    justify-content: center;
+}
+
+.md-48 {
+    cursor: pointer;
+    font-size: 36px; 
+    width: 36px;
+    height: 36px;
+}
+
 @media (min-width: 992px) {
     :host {
         flex-direction: row-reverse;
     }
 
-    #diagram {
+    #diagram, #tools {
         height: 100%;
         width: 70%;
     }
@@ -35,5 +49,9 @@
 @media (min-width: 1280px) {
     #chat-container {
         width: 20%;
+    }
+
+    #diagram, #tools {
+        width: 80%;
     }
 }

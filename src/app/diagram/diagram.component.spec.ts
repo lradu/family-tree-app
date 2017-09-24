@@ -3,7 +3,11 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MdFormFieldModule, MdInputModule } from '@angular/material'
+import {
+    MdFormFieldModule,
+    MdInputModule,
+    MdIconModule
+} from '@angular/material'
 
 import { AngularFireModule } from 'angularfire2';
 import { AngularFireDatabase } from 'angularfire2/database';
@@ -35,7 +39,8 @@ describe('DiagramComponent', () => {
                 AngularFireModule.initializeApp(firebaseConfig),
                 BrowserAnimationsModule,
                 MdFormFieldModule,
-                MdInputModule
+                MdInputModule,
+                MdIconModule
             ],
             providers: [
                 AngularFireDatabase,

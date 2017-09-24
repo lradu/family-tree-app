@@ -1,7 +1,11 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MdFormFieldModule, MdInputModule } from '@angular/material';
+import {
+    MdFormFieldModule,
+    MdInputModule,
+    MdIconModule
+} from '@angular/material';
 
 import { AngularFireDatabase } from 'angularfire2/database';
 import { AngularFireAuth } from 'angularfire2/auth';
@@ -13,7 +17,8 @@ import { ChatComponent } from './chat/chat.component';
         CommonModule,
         BrowserAnimationsModule,
         MdFormFieldModule,
-        MdInputModule
+        MdInputModule,
+        MdIconModule
     ],
     declarations: [
         DiagramComponent,
