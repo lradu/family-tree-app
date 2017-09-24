@@ -78,8 +78,8 @@ export class Diagram extends go.Diagram {
 				// define the panel where the text will appear
 				this.goMake(go.Panel, "Table",
 					{
-					maxSize: new go.Size(150, 999),
-					margin: new go.Margin(6, 10, 0, 3),
+					maxSize: new go.Size(250, 999),
+					margin: new go.Margin(6, 10, 10, 6),
 					defaultAlignment: go.Spot.Left
 					},
 					this.goMake(go.RowColumnDefinition, { column: 2, width: 4 }),
@@ -113,7 +113,31 @@ export class Diagram extends go.Diagram {
 						editable: true,  // by default newlines are allowed
 						minSize: new go.Size(10, 14)
 					},
-					new go.Binding("text", "a").makeTwoWay())
+					new go.Binding("text", "a").makeTwoWay()),
+
+					this.goMake(go.TextBlock, "Birthday: ", this.textStyle(),
+					{ row: 3, column: 0 }),
+					this.goMake(go.TextBlock, this.textStyle(),  // age
+					{
+						row: 3, column: 1, columnSpan: 5,
+						font: "italic 9pt sans-serif",
+						wrap: go.TextBlock.WrapFit,
+						editable: true,  // by default newlines are allowed
+						minSize: new go.Size(10, 14)
+					},
+					new go.Binding("text", "birthday").makeTwoWay()),
+
+					this.goMake(go.TextBlock, "Death date: ", this.textStyle(),
+					{ row: 4, column: 0 }),
+					this.goMake(go.TextBlock, this.textStyle(),  // age
+					{
+						row: 4, column: 1, columnSpan: 5,
+						font: "italic 9pt sans-serif",
+						wrap: go.TextBlock.WrapFit,
+						editable: true,  // by default newlines are allowed
+						minSize: new go.Size(10, 14)
+					},
+					new go.Binding("text", "death").makeTwoWay())
 				)  // end Table Panel
 			) // end Horizontal Panel
 		));

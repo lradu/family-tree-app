@@ -8,5 +8,7 @@ export type Node = {
     ux?: number,
     vir?: number,
     a?: string,
+    birthday?: string,
+    death?: string,
     visible?: boolean
 }
